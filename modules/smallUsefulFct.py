@@ -249,3 +249,13 @@ def addSuffix(obj,suffix):
     cmds.rename(obj,f'{obj}{suffix}')
 
 
+def cleanTransform(object_name):
+    # Set translate to 0
+    cmds.setAttr(f"{object_name}.translateX", 0)
+    cmds.setAttr(f"{object_name}.translateY", 0)
+    cmds.setAttr(f"{object_name}.translateZ", 0)
+
+    # Set rotate to 0
+    cmds.setAttr(f"{object_name}.rotateX", 0)
+    cmds.setAttr(f"{object_name}.rotateY", 0)
+    cmds.setAttr(f"{object_name}.rotateZ", 0)

@@ -68,7 +68,30 @@ def AttachRib(attach):
         else : 
             print(f'{ARib} AND {BRib}')
             
+        ##NON ROLL##
+        ##Wrist --> Connect Arm fk and ik with condition at the Ribbon
 
+
+        ##SHOULDER 
+        if obj== "Shoulder":
+            locs_NonRoll=[f'Loc_Twist_Shoulder_01_{side}',f'Loc_Twist_Shoulder_02_{side}']
+            for l in range(len(locs_NonRoll)):
+                cmds.spaceLocator(name=locs_NonRoll[l])[0]
+            
+            #Loc 01
+            cmds.parent(locs_NonRoll[0],f'DrvJnt_{obj}_{side}')
+            smallUsefulFct.cleanTransform(locs_NonRoll[0])
+            
+            #Loc 02
+            rotateDrvJnt=cmds.xform(f'DrvJnt_{obj}_{side}', query=True, worldSpace=True, rotation=True)
+            translateDrvJnt=cmds.xform(f'DrvJnt_{obj}_{side}', query=True, worldSpace=True, translation=True)
+            cmds.parent(locs_NonRoll[1],f'Bind_Clavicule_01_{side}')
+            #Put the same translate and rotate than the DrvJnt
+            cmds.xform(locs_NonRoll[1], rotation=rotateDrvJnt, worldSpace=True, translation=translateDrvJnt)
+            smallUsefulFct.offset2(locs_NonRoll[1])
+        
+        ##Create the nodale Behind
+        
 
 
 

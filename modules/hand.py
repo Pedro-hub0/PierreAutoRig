@@ -53,7 +53,9 @@ def createHand():
         # Check if the group exists
     if not cmds.objExists("Grp_temp_Locs") :
         cmds.group(empty=True, name="Grp_temp_Locs")
-    cmds.parent(f'Loc_Hand_{side}',"Grp_temp_Locs")
+        
+    if cmds.listRelatives(f'Loc_Hand_{side}', parent=True) == None:
+        cmds.parent(f'Loc_Hand_{side}',"Grp_temp_Locs")
 
 
 def ctrlHand():
