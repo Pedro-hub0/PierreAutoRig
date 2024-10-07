@@ -25,7 +25,7 @@ def AttachRib(attach):
         if is_checked:
             rib_check.append(cb_Rib[i])
 
-
+    isA=True
     for r in rib_check:
         ######REUSSIR A FAKE LES SELECT OBJ#######
         obj=r.split("_")[0]
@@ -33,21 +33,27 @@ def AttachRib(attach):
         ##Check##
         if obj == "Shoulder":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Elbow_{side}"]
+            objSwitch="Arm"
         if obj == "Elbow":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Wrist_{side}"]
-        
+            objSwitch="Arm"
         if obj == "Leg":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Knee_{side}"]
+            objSwitch="Leg"
         if obj == "Knee":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Ankle_{side}"]
+            objSwitch="Leg"
+
 
         ##IMPORTE RIBBON
         createRibbon()
+        if cmds.objExists(f'Ribbon_01_{obj}_{side}'):
+            cmds.delete(f'Ribbon_01_{obj}_{side}')
         if cmds.objExists("Ribbon_01"):
             smallUsefulFct.addSuffix("Ribbon_01",f'_{obj}_{side}')
         else:        
             raise ValueError("There is no Ribbon with the name Ribbon_01  Met Ribbon_matX fait par Kelly dans ton dossier scene")
-       
+
         GlobalRib=f"Ctrl_Global_Ribbon_01_{obj}_{side}"
         ARib= f'CTRL_Ribbon_A01_{obj}_{side}'
         BRib=f'CTRL_Ribbon_B01_{obj}_{side}'
@@ -60,6 +66,7 @@ def AttachRib(attach):
   
         if cmds.objExists(ARib) and cmds.objExists(BRib):
             if not smallUsefulFct.getDistBetweenJnts(selObj[0],ARib)<smallUsefulFct.getDistBetweenJnts(selObj[1],ARib):
+                isA=False
                 temp=selObj[0]
                 selObj[0]=selObj[1]
                 selObj[1]=temp
@@ -67,15 +74,36 @@ def AttachRib(attach):
             cmds.pointConstraint(selObj[1],BRib,maintainOffset=False)
         else : 
             print(f'{ARib} AND {BRib}')
-            
+             
         ##NON ROLL##
         ##Wrist --> Connect Arm fk and ik with condition at the Ribbon
+        if obj == "Elbow" :
+            condition_node_elbow = cmds.createNode('condition', name=f'condition_wrist_{side}')
+            cmds.connectAttr(f'DrvJnt_Wrist_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')
+            cmds.connectAttr(f'Fk_Wrist_{side}.rotate',f'{condition_node_elbow}.colorIfFalse')
+            cmds.connectAttr(f'CTRL_IkFk_{objSwitch}_{side}.Switch_Ik_Fk',f'{condition_node_elbow}.firstTerm') 
+            cmds.setAttr(f'{condition_node_elbow}.operation',0)
+            cmds.setAttr(f'{condition_node_elbow}.secondTerm',1)
+            if not isA:
+                cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{ARib}.rotateX')
+                cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{ARib}.rotateY') 
+                cmds.connectAttr(f'{condition_node_elbow}.outColorB',f'{ARib}.rotateZ') 
+            else:
+                cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{BRib}.rotateX') 
+                cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{BRib}.rotateY') 
+                cmds.connectAttr(f'{condition_node_elbow}.outColorB',f'{BRib}.rotateZ')
 
 
         ##SHOULDER 
         if obj== "Shoulder":
             locs_NonRoll=[f'Loc_Twist_Shoulder_01_{side}',f'Loc_Twist_Shoulder_02_{side}']
             for l in range(len(locs_NonRoll)):
+                if cmds.objExists(f'{locs_NonRoll[l]}_Move'):
+                    cmds.delete(f'{locs_NonRoll[l]}_Move')
+
+                if cmds.objExists(f'{locs_NonRoll[l]}'):
+                    cmds.delete(f'{locs_NonRoll[l]}')
+
                 cmds.spaceLocator(name=locs_NonRoll[l])[0]
             
             #Loc 01
@@ -90,12 +118,52 @@ def AttachRib(attach):
             cmds.xform(locs_NonRoll[1], rotation=rotateDrvJnt, worldSpace=True, translation=translateDrvJnt)
             smallUsefulFct.offset2(locs_NonRoll[1])
         
-        ##Create the nodale Behind
+            ##Create the nodale Behind
+
+            mult_matrix_node = cmds.createNode('multMatrix', name=f'myMultMatrix_Nonroll_{obj}_{side}')
+            decompose_node = cmds.createNode('decomposeMatrix', name=f'myDecomposeMatrix_Nonroll_{obj}_{side}')
+
+            axes=["X","Y","Z"]
+            cmds.connectAttr(locs_NonRoll[0] + ".worldMatrix[0]", mult_matrix_node + ".matrixIn[0]")
+            cmds.connectAttr(locs_NonRoll[0] + ".worldInverseMatrix[0]", mult_matrix_node + ".matrixIn[1]")
+            cmds.connectAttr(mult_matrix_node + ".matrixSum", decompose_node + ".inputMatrix")
+            
+            for a in axes:
+                quat_to_euler_node = cmds.createNode('quatToEuler', name=f'myQuatToEuler_Nonroll_{a}_{obj}_{side}')
+                cmds.connectAttr(f'{decompose_node}.outputQuatW', f'{quat_to_euler_node}.inputQuatW')   
+                cmds.connectAttr(f'{decompose_node}.outputQuat{a}',f'{quat_to_euler_node}.inputQuat{a}')
+                if a=='X':
+                    if isA:
+                        cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{ARib}.rotateX')
+                    else:
+                        cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{BRib}.rotateX')
+
+    
+
+        if not cmds.attributeQuery(f'Bend_{objSwitch}_{side}', node=f'CTRL_IkFk_{objSwitch}_{side}', exists=True):
+            cmds.addAttr(f'CTRL_IkFk_{objSwitch}_{side}', longName=f'Bend_{objSwitch}_{side}', attributeType='bool', defaultValue=0,keyable=True)
+        cmds.connectAttr(f'CTRL_IkFk_{objSwitch}_{side}.Bend_{objSwitch}_{side}',f"CTRL_Ribbon_Mid_01_{obj}_{side}.visibility")
         
+        ##  Organiser
+        if cmds.objExists('GlobalMove'):
+            if not cmds.objExists('grp_Ribbon'):
+                grp_Ribbon = cmds.group(empty=True, name="grp_Ribbon")
+            else:
+                grp_Ribbon="grp_Ribbon"       
+            cmds.parent(f'Ribbon_01_{obj}_{side}',grp_Ribbon)
+            if not cmds.objExists('ExtraNodes'):
+                grp_Extranode = cmds.group(empty=True, name="ExtraNodes")
+            else:
+                grp_Extranode="ExtraNodes"
+            if cmds.listRelatives(grp_Extranode,parent=True) == None:
+                cmds.parent(grp_Ribbon,grp_Extranode)
+                cmds.parent(grp_Extranode,'GlobalMove')
 
 
 
-        
+
+
+
 
         """
         if(obj=="Leg" or obj=="Shoulder" ):
