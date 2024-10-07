@@ -68,12 +68,21 @@ def createClavicule():
     ##Constraints CTRL
     cmds.orientConstraint(CtrlClav,f'Bind_Clavicule_01_{side}', maintainOffset=True, weight=1)    
     ##Constraints Attache Body
-    cmds.orientConstraint(f'Bind_Clavicule_End_{side}',f'DrvJnt_Shoulder_{side}_Move' ,maintainOffset=True, weight=1)    
+    or_Clav_Ik=cmds.orientConstraint(f'Bind_Clavicule_End_{side}',f'DrvJnt_Shoulder_{side}_Move' ,maintainOffset=True, weight=1)[0]    
     cmds.pointConstraint(f'Bind_Clavicule_End_{side}',f'DrvJnt_Shoulder_{side}_Move' ,maintainOffset=True, weight=1)    
     cmds.pointConstraint(f'Bind_Clavicule_End_{side}',f'CTRL_Fk_Shoulder_{side}_Move', maintainOffset=True, weight=1)    
     if cmds.objExists('CTRL_Torso'):
         cmds.orientConstraint(f'CTRL_Torso',f'CTRL_Fk_Shoulder_{side}_Move', maintainOffset=True, weight=1)    
     
+    condition_node = cmds.createNode("condition", name=f'condition_Clav_{side}')
+    cmds.setAttr(f'{condition_node}.colorIfTrueR',0)
+    cmds.setAttr(f'{condition_node}.colorIfTrueG',0)
+    cmds.setAttr(f'{condition_node}.colorIfTrueB',0)
+    cmds.setAttr(f'{condition_node}.colorIfFalseR',1)
+    cmds.setAttr(f'{condition_node}.colorIfFalseG',1)
+    cmds.setAttr(f'{condition_node}.colorIfFalseB',1)
+    cmds.connectAttr(f"CTRL_IkFk_Arm_{side}.Switch_Ik_Fk",f'{condition_node}.firstTerm')
+    cmds.connectAttr(f'{condition_node}.outColorR',f'{or_Clav_Ik}.Bind_Clavicule_End_{side}W0')
     
     TempIkChain = cmds.listRelatives(selObj, allDescendents=True, type='joint') or []
     
@@ -86,7 +95,7 @@ def createClavicule():
                 break
         cmds.parent(f'Bind_Clavicule_01_{side}_Offset',LastSpine)
 
-    ##Organiser q
+    ##Organiser 
     cmds.parent(f'{CtrlClav}_Offset',grp_Ctrl_Clav)
 
     if cmds.listRelatives(grp_Ctrl_Clav,parent=True) ==  None:  

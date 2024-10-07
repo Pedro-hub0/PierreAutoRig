@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import sys
+import importlib
 import os
 # Get the folder containing the current script
 script_dir = os.path.dirname(__file__)
@@ -7,7 +8,8 @@ script_dir = os.path.dirname(__file__)
 # Add that folder to sys.path
 sys.path.append(script_dir)
 import smallUsefulFct
-import math
+
+importlib.reload(smallUsefulFct)
 
 
 def createRibbon():
@@ -24,7 +26,7 @@ def AttachRib(attach):
         is_checked = cmds.checkBox(attach[i], query=True, value=True)
         if is_checked:
             rib_check.append(cb_Rib[i])
-
+    objextremity=''
     isA=True
     for r in rib_check:
         ######REUSSIR A FAKE LES SELECT OBJ#######
@@ -37,12 +39,14 @@ def AttachRib(attach):
         if obj == "Elbow":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Wrist_{side}"]
             objSwitch="Arm"
+            objextremity="Wrist"
         if obj == "Leg":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Knee_{side}"]
             objSwitch="Leg"
         if obj == "Knee":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Ankle_{side}"]
             objSwitch="Leg"
+            objextremity="Ankle"
 
 
         ##IMPORTE RIBBON
@@ -61,46 +65,52 @@ def AttachRib(attach):
         ##Parent le Ribbon a la jambe
         cmds.parentConstraint(selObj[0], selObj[1], GlobalRib, sr=["x","y","z"],maintainOffset=False)
         cmds.parentConstraint(selObj[0], GlobalRib, st=["x", "y","z"],maintainOffset=False)
+        print(f'           :{selObj[0]}        {selObj[1]}')
 
-       
   
         if cmds.objExists(ARib) and cmds.objExists(BRib):
-            if not smallUsefulFct.getDistBetweenJnts(selObj[0],ARib)<smallUsefulFct.getDistBetweenJnts(selObj[1],ARib):
+            print(smallUsefulFct.getDistBetweenJnts(selObj[0],f'Bind_Ribbon_A01_{obj}_{side}'))
+            print(smallUsefulFct.getDistBetweenJnts(selObj[1],f'Bind_Ribbon_A01_{obj}_{side}'))
+            
+            if not smallUsefulFct.getDistBetweenJnts(selObj[0],f'Bind_Ribbon_A01_{obj}_{side}')<smallUsefulFct.getDistBetweenJnts(selObj[1],f'Bind_Ribbon_A01_{obj}_{side}'):
+                
                 isA=False
                 temp=selObj[0]
                 selObj[0]=selObj[1]
                 selObj[1]=temp
+            else:
+                isA=True
             cmds.pointConstraint(selObj[0],ARib,maintainOffset=False)
             cmds.pointConstraint(selObj[1],BRib,maintainOffset=False)
         else : 
-            print(f'{ARib} AND {BRib}')
-             
+            print(f'{ARib} AND {BRib}')     
         ##NON ROLL##
         ##Wrist --> Connect Arm fk and ik with condition at the Ribbon
-        if obj == "Elbow" :
-            condition_node_elbow = cmds.createNode('condition', name=f'condition_wrist_{side}')
-            cmds.connectAttr(f'DrvJnt_Wrist_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')
-            cmds.connectAttr(f'Fk_Wrist_{side}.rotate',f'{condition_node_elbow}.colorIfFalse')
+        if obj in ("Elbow","Knee") :
+            print("Wsh tu fais quoi la ??"+obj)
+            condition_node_elbow = cmds.createNode('condition', name=f'condition_{objextremity}_{side}')
+            if obj=="Knee":
+                cmds.connectAttr(f'CTRL_Foot_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')                
+            else:
+                cmds.connectAttr(f'DrvJnt_{objextremity}_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')
+            cmds.connectAttr(f'Fk_{objextremity}_{side}.rotate',f'{condition_node_elbow}.colorIfFalse')
             cmds.connectAttr(f'CTRL_IkFk_{objSwitch}_{side}.Switch_Ik_Fk',f'{condition_node_elbow}.firstTerm') 
             cmds.setAttr(f'{condition_node_elbow}.operation',0)
             cmds.setAttr(f'{condition_node_elbow}.secondTerm',1)
             if not isA:
                 cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{ARib}.rotateX')
                 cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{ARib}.rotateY') 
-                cmds.connectAttr(f'{condition_node_elbow}.outColorB',f'{ARib}.rotateZ') 
             else:
                 cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{BRib}.rotateX') 
                 cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{BRib}.rotateY') 
-                cmds.connectAttr(f'{condition_node_elbow}.outColorB',f'{BRib}.rotateZ')
 
 
         ##SHOULDER 
-        if obj== "Shoulder":
-            locs_NonRoll=[f'Loc_Twist_Shoulder_01_{side}',f'Loc_Twist_Shoulder_02_{side}']
+        if obj in ("Shoulder","Leg"):
+            locs_NonRoll=[f'Loc_Twist_{obj}_01_{side}',f'Loc_Twist_{obj}_02_{side}']
             for l in range(len(locs_NonRoll)):
                 if cmds.objExists(f'{locs_NonRoll[l]}_Move'):
                     cmds.delete(f'{locs_NonRoll[l]}_Move')
-
                 if cmds.objExists(f'{locs_NonRoll[l]}'):
                     cmds.delete(f'{locs_NonRoll[l]}')
 
@@ -113,7 +123,10 @@ def AttachRib(attach):
             #Loc 02
             rotateDrvJnt=cmds.xform(f'DrvJnt_{obj}_{side}', query=True, worldSpace=True, rotation=True)
             translateDrvJnt=cmds.xform(f'DrvJnt_{obj}_{side}', query=True, worldSpace=True, translation=True)
-            cmds.parent(locs_NonRoll[1],f'Bind_Clavicule_01_{side}')
+            if obj=="Leg":
+                cmds.parent(locs_NonRoll[1],f'Bind_Hip')
+            else:
+                cmds.parent(locs_NonRoll[1],f'Bind_Clavicule_01_{side}')
             #Put the same translate and rotate than the DrvJnt
             cmds.xform(locs_NonRoll[1], rotation=rotateDrvJnt, worldSpace=True, translation=translateDrvJnt)
             smallUsefulFct.offset2(locs_NonRoll[1])
@@ -143,6 +156,11 @@ def AttachRib(attach):
         if not cmds.attributeQuery(f'Bend_{objSwitch}_{side}', node=f'CTRL_IkFk_{objSwitch}_{side}', exists=True):
             cmds.addAttr(f'CTRL_IkFk_{objSwitch}_{side}', longName=f'Bend_{objSwitch}_{side}', attributeType='bool', defaultValue=0,keyable=True)
         cmds.connectAttr(f'CTRL_IkFk_{objSwitch}_{side}.Bend_{objSwitch}_{side}',f"CTRL_Ribbon_Mid_01_{obj}_{side}.visibility")
+        parent=cmds.listRelatives(f"CTRL_Ribbon_Mid_01_{obj}_{side}",parent=True)[0]
+        translateMidCtrl=cmds.getAttr(f'{parent}.translateX')
+        smallUsefulFct.offset2(f"CTRL_Ribbon_Mid_01_{obj}_{side}")
+        #cmds.parent(f"CTRL_Ribbon_Mid_01_{obj}_{side}_Offset",f'CTRL_Ribbon_Mid_01_Move_{obj}_{side}')
+        cmds.setAttr(f"CTRL_Ribbon_Mid_01_{obj}_{side}_Offset.translateX",(-1)*translateMidCtrl)
         
         ##  Organiser
         if cmds.objExists('GlobalMove'):
