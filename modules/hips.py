@@ -45,6 +45,9 @@ def create_hips_Ctrl(size):
         
         #parent 
         cmds.parentConstraint(Ctrl_hip,'Bind_Hip', maintainOffset=True, weight=1)
+        cmds.parent(f'{Ctrl_hip}_Offset','CTRL_Root')
+
+
     else:
         raise ValueError("You need to create Hips Before")
 
