@@ -94,6 +94,7 @@ def lockUnlock(cb_loc_Translate,cb_loc_tx,cb_loc_ty,cb_loc_tz,cb_loc_Rotate,cb_l
     # Lock the translation attributes (X, Y, Z)
     for obj in selected:
         if cb_loc_Translate:
+            
             cmds.setAttr(obj + ".translateX", lock=cb_loc_tx)
             cmds.setAttr(obj + ".translateY", lock=cb_loc_ty)
             cmds.setAttr(obj + ".translateZ", lock=cb_loc_tz)

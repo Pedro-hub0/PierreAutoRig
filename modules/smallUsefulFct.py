@@ -92,6 +92,10 @@ def organiser():
     else:
         grp_Jnt = cmds.group(empty=True, name="JNT")
 
+    if cmds.objExists("Perso01"):
+        grp_Perso="Perso01"
+    else:
+        grp_Perso = cmds.group(empty=True, name="Perso01")
     if cmds.objExists("Preserve_Jnts"):
         grp_preserve="Preserve_Jnts"
     else:
@@ -102,14 +106,21 @@ def organiser():
         grp_Iks='IKs'
     else:
         grp_Iks = cmds.group(empty=True, name="IKs")
-
+    if not cmds.objExists('ExtraNodes'):
+        grp_Extranode = cmds.group(empty=True, name="ExtraNodes")
+    else:
+        grp_Extranode="ExtraNodes"
     if cmds.objExists('GlobalMove'):
         grp_Global='GlobalMove'
     else:
         grp_Global = cmds.group(empty=True, name="GlobalMove")
+
         cmds.parent(f'{grp_Iks}',grp_Global)
         cmds.parent(f'{grp_Ctrl}',grp_Global)
         cmds.parent(f'{grp_Jnt}',grp_Global)
+        cmds.parent(f'{grp_Extranode}',grp_Perso)
+        cmds.parent(f'{grp_Global}',grp_Perso)
+
 
 
 

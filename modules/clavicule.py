@@ -11,7 +11,9 @@ def locClavicule():
     if len(selObj) <1:
         raise ValueError("You need to select just 1 thing which finish by L or R")
     side=selObj[0][-1]
-    cmds.spaceLocator(name=f'Temp_Loc_Clav_{side}')[0]
+    tempLoc=cmds.spaceLocator(name=f'Temp_Loc_Clav_{side}')[0]
+    if cmds.objExists('Grp_temp_Locs') and cmds.listRelatives('Grp_temp_Locs',parent=True)==None:
+        cmds.parent(tempLoc,'Grp_temp_Locs')
 
 
 

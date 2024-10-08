@@ -20,15 +20,17 @@ def createSpine(spineIk,spineFk,sz) :
     FkJnts=[]
     Ctrl_Fk_Spine=[]
     Ctrl_Ik_Spine=[]
-
+    grp_Extranode=""
     #Organiser
     smallUsefulFct.organiser()
     grp_Ctrl="CTRL"
     grp_Jnt="JNT"
     grp_Global='GlobalMove'
     grp_Iks='IKs'
+    grp_Extranode="ExtraNodes"
     if not cmds.objExists('Loc_Shoulder') or not cmds.objExists('Loc_Root'):
         raise ValueError("Create Locators")
+
     
     TranslateJnts = [cmds.xform(LocName[0], q=True, t=True, ws=True),cmds.xform(LocName[1], q=True, t=True, ws=True)]
    
@@ -85,6 +87,8 @@ def createSpine(spineIk,spineFk,sz) :
     CurveIk=ik_objs[len(ik_objs)-1]
     cmds.rename(CurveIk,"Crv_Spine")
     CurveIk="Crv_Spine"
+    cmds.parent(CurveIk,grp_Extranode)
+
     ##Corriger Bas curve ne rotate pas, Twist
     SkinClusterSpine = cmds.skinCluster(JntName, CurveIk, n='spine_skinCluster', tsb=True, bm=0, sm=0, nw=1,mi=3)[0]
     cmds.setAttr(f'{ik_Handle}.rootTwistMode', 1)

@@ -173,9 +173,13 @@ def AttachRib(attach):
                 grp_Extranode = cmds.group(empty=True, name="ExtraNodes")
             else:
                 grp_Extranode="ExtraNodes"
-            if cmds.listRelatives(grp_Extranode,parent=True) == None:
+
+            if cmds.objExists('Perso01'):
+                if cmds.listRelatives(grp_Extranode,parent=True) == None:
+                    cmds.parent(grp_Extranode,'Perso01')
+            
+            if cmds.listRelatives(grp_Ribbon,parent=True) == None:                
                 cmds.parent(grp_Ribbon,grp_Extranode)
-                cmds.parent(grp_Extranode,'GlobalMove')
 
 
 

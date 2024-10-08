@@ -10,7 +10,7 @@ script_dir = os.path.dirname(__file__)
 # Add that folder to sys.path
 sys.path.append(script_dir)
 
-import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon
+import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon,modules.globalscale
 
 importlib.reload(modules.armLeg   )
 importlib.reload(modules.clavicule)
@@ -20,6 +20,7 @@ importlib.reload(modules.tools)
 importlib.reload(modules.stretch)
 importlib.reload(modules.hips)
 importlib.reload(modules.ribbon)
+importlib.reload(modules.globalscale)
 
 
 from modules import *
@@ -52,6 +53,20 @@ def create_window():
     cmds.button(label='Squash And Stretch', command=lambda x:stretch.Stretchfct(),width=120)
     cmds.separator(h=8)
     # Crée une frame layout (volet repliable)
+    cmds.frameLayout(label='Spine', collapsable=True, collapse=True)
+    cmds.separator(h=8)
+    cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
+    cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
+    spineIk = cmds.intField(value=6,width=75)
+    cmds.text(label="Fk", font = "boldLabelFont" , w = 75, align = "center")
+    spineFk = cmds.intField(value=3,width=75)
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cmds.button(label='Create Locs', command=lambda x:spine.creatLocsSpine(),width=150)
+    cmds.button(label='Spine', command=lambda x:spine.createSpine(spineIk,spineFk,sizeCtrlArm),width=150)
+    cmds.setParent('..')
+    cmds.setParent('..')
+
     cmds.frameLayout(label='Arm/Leg', collapsable=True, collapse=True)
     cmds.separator(h=3)
     cmds.text(label="Create 3 Joint for your Arm / Leg", font = "boldLabelFont" , w = 50, align = "left")
@@ -63,6 +78,19 @@ def create_window():
     cmds.setParent('..') 
     cmds.separator(h=15)
     cmds.setParent('..')
+
+    cmds.frameLayout(label='Clavicule', collapsable=True, collapse=True)
+    cmds.separator(h=8)
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cmds.button(label='Create Locators', command=lambda x:clavicule.locClavicule(),width=100)
+    cmds.button(label='Create Clavicules', command=lambda x:clavicule.createClavicule(),width=100)
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cb_jnt_foot = cmds.checkBox(label="Create",v=True)
+    cmds.button(label='Mirror', command=lambda x:clavicule.mirorClav(cb_jnt_foot),width=100)
+    cmds.setParent('..')
+    cmds.setParent('..')
+
 
     cmds.frameLayout(label='Foot', collapsable=True, collapse=True)
     cmds.separator(h=8)
@@ -97,31 +125,6 @@ def create_window():
     cmds.separator(h=8)
     cmds.setParent('..')
 
-    cmds.frameLayout(label='Spine', collapsable=True, collapse=True)
-    cmds.separator(h=8)
-    cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
-    cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
-    spineIk = cmds.intField(value=6,width=75)
-    cmds.text(label="Fk", font = "boldLabelFont" , w = 75, align = "center")
-    spineFk = cmds.intField(value=3,width=75)
-    cmds.setParent('..')
-    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Locs', command=lambda x:spine.creatLocsSpine(),width=150)
-    cmds.button(label='Spine', command=lambda x:spine.createSpine(spineIk,spineFk,sizeCtrlArm),width=150)
-    cmds.setParent('..')
-    cmds.setParent('..')
-
-    cmds.frameLayout(label='Clavicule', collapsable=True, collapse=True)
-    cmds.separator(h=8)
-    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Locators', command=lambda x:clavicule.locClavicule(),width=100)
-    cmds.button(label='Create Clavicules', command=lambda x:clavicule.createClavicule(),width=100)
-    cmds.setParent('..')
-    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cb_jnt_foot = cmds.checkBox(label="Create",v=True)
-    cmds.button(label='Mirror', command=lambda x:clavicule.mirorClav(cb_jnt_foot),width=100)
-    cmds.setParent('..')
-    cmds.setParent('..')
 
 
     cmds.frameLayout(label='Hips', collapsable=True, collapse=True)
@@ -159,9 +162,15 @@ def create_window():
     cb_attach_Knee_L = cmds.checkBox(label="L",v=False)
     cb_attach_Knee_R= cmds.checkBox(label="R",v=False)
     cmds.setParent('..')
+
     cb_attach=[cb_attach_shoulder_L,cb_attach_shoulder_R,cb_attach_elbow_L,cb_attach_elbow_R,cb_attach_Leg_L,cb_attach_Leg_R,cb_attach_Knee_L,cb_attach_Knee_R]
     cmds.button(label='Attach', command=lambda x:ribbon.AttachRib(cb_attach),width=100)
 
+    cmds.setParent('..')
+
+    cmds.frameLayout(label='Ctrl General Scale', collapsable=True, collapse=True)
+    cmds.separator(h=8)
+    cmds.button(label='Create Ctrl Global', command=lambda x:globalscale.CreateGlobal(),width=100)
     cmds.setParent('..')
 
     
