@@ -34,7 +34,8 @@ def Stretchfct():
         else:
             grp_Locs = cmds.group(empty=True, name="Locs")
 
-        cmds.parent(grp_Locs,'GlobalMove')
+        if cmds.listRelatives(grp_Locs,parent=True)[0] == None:
+            cmds.parent(grp_Locs,'GlobalMove')
         name3="Foot"
         if objName =="Arm":
             name3="Hand"
@@ -135,7 +136,9 @@ def Stretchfct():
         cmds.connectAttr(f'CTRL_Root.Stretch_Spine', f'{cond_Stretch}.firstTerm')
 
     ##Tout CONNECTER AUX JOINTS 
+    blacklist=['Bind_Hip','Bind_Leg_R','Bind_Leg_L']
     for ik in Ik_jnt_Names:
-        cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleX')
-        cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleY')
-        cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleZ')
+        if ik not in blacklist:
+            cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleX')
+            cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleY')
+            cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleZ')

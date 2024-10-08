@@ -86,8 +86,8 @@ def create_window():
     cmds.button(label='Create Clavicules', command=lambda x:clavicule.createClavicule(),width=100)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cb_jnt_foot = cmds.checkBox(label="Create",v=True)
-    cmds.button(label='Mirror', command=lambda x:clavicule.mirorClav(cb_jnt_foot),width=100)
+    cb_jnt_clav= cmds.checkBox(label="Create",v=True)
+    cmds.button(label='Mirror', command=lambda x:clavicule.mirorClav(cb_jnt_clav),width=100)
     cmds.setParent('..')
     cmds.setParent('..')
 
@@ -170,7 +170,7 @@ def create_window():
 
     cmds.frameLayout(label='Ctrl General Scale', collapsable=True, collapse=True)
     cmds.separator(h=8)
-    cmds.button(label='Create Ctrl Global', command=lambda x:globalscale.CreateGlobal(),width=100)
+    cmds.button(label='Create Ctrl Global', command=lambda x:globalscale.CreateGlobal(sizeCtrlArm),width=100)
     cmds.setParent('..')
 
     

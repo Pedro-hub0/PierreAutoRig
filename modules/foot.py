@@ -230,6 +230,9 @@ def ConnectFoot():
         cmds.connectAttr(remapToeRotY+".outValue","Loc_Toe_L.rotateY")
 
         #FootRoll
+        Rotate=cmds.getAttr(f'Pivot_Ball_L.rotateX')
+        if Rotate!= 0:
+            smallUsefulFct.offset2(f'Pivot_Ball_L')
         cmds.connectAttr(Ctrl + ".Foot_Roll_L", remapFRPivotRotX+".inputValue")
         cmds.connectAttr(remapFRPivotRotX+".outValue","Pivot_Ball_L.rotateX")
 
@@ -285,7 +288,7 @@ def ConnectFoot():
         cmds.setAttr(f"{remapHeelRotY}.value[3].value_Interp", 1)
 
 
-
+        
         #CONNECT
         #Toe
         cmds.connectAttr(Ctrl + ".Flex_Toe_R", remapFlexToe+".inputValue")
@@ -293,17 +296,21 @@ def ConnectFoot():
 
         cmds.connectAttr(Ctrl + ".Twist_Toe_R", remapToeRotY+".inputValue")
         cmds.connectAttr(remapToeRotY+".outValue","Loc_Toe_R.rotateY")
-
+        
         #FootRoll
+        Rotate=cmds.getAttr(f'Pivot_Ball_R.rotateX')
+        if Rotate!= 0:
+            smallUsefulFct.offset2(f'Pivot_Ball_R')
         cmds.connectAttr(Ctrl + ".Foot_Roll_R", remapFRPivotRotX+".inputValue")
         cmds.connectAttr(remapFRPivotRotX+".outValue","Pivot_Ball_R.rotateX")
+        
 
         cmds.connectAttr(Ctrl + ".Foot_Roll_R", remapFRToeRotX+".inputValue")
         cmds.connectAttr(remapFRToeRotX+".outValue","Loc_Toe_R.rotateX")
-
+    
         cmds.connectAttr(Ctrl + ".Foot_Roll_R", remapFRHeelRotX+".inputValue")
         cmds.connectAttr(remapFRHeelRotX+".outValue","Loc_Heel_R.rotateX")
-
+        
         #Heel
         cmds.connectAttr(Ctrl + ".Twist_Heel_R", remapHeelRotY+".inputValue")
         cmds.connectAttr(remapHeelRotY+".outValue","Loc_Heel_R.rotateY")
@@ -472,11 +479,11 @@ def mirorFoot(cb_jnt,cb_ctrl,sizeCtrlArm):
     
     #Use the last codes
     if cb_jnt_val:
-        cmds.select(f"CTRL_IkFk_Arm_{otherside}")
+        cmds.select(f"CTRL_IkFk_Leg_{otherside}")
         OrganiseLocs(sizeCtrlArm)
 
     if cb_ctrl_val:
-        cmds.select(f"CTRL_IkFk_Arm_{otherside}")
+        cmds.select(f"CTRL_IkFk_Leg_{otherside}")
         ConnectFoot()
 
 

@@ -59,13 +59,12 @@ def createIkFk(sz):
     grp_Iks='IKs'
 
     #Get children 
-    #jointChain01=cmds.listRelatives(obj, children=True, fullPath=False) or []
     TempIkChain = cmds.listRelatives(obj, allDescendents=True, type='joint') or []
     IkChain =[]
+    
     ### More Optimisation ###
     #Create Locs
     #Create joints
-    #Orient Joints
     ######
     #Rename
 
