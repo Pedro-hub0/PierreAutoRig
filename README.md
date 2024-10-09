@@ -57,9 +57,9 @@ Lock Attribute:
 If Translate or rotate is check, it will considere everything check is lock, everything uncheck is unlock.
 
 Replace Ctrl:
-If you have a Ctrl Shape that you prefer. Take the Ctrl that you like and the other that you want to replace.
-Click on Replace Ctrl and it will replace the shape
+- If you have a Ctrl Shape that you prefer. Take the Ctrl that you like and the other that you want to replace.
+- Click on Replace Ctrl and it will replace the shape
 
 Match Ik/Fk:
-For animator. Permit to do a match Ik Fk with that rig
+- For animator. Permit to do a match Ik Fk with that rig
 
