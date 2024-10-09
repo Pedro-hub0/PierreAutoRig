@@ -10,7 +10,7 @@ script_dir = os.path.dirname(__file__)
 # Add that folder to sys.path
 sys.path.append(script_dir)
 
-import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon,modules.globalscale
+import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon,modules.globalscale,modules.head
 
 importlib.reload(modules.armLeg   )
 importlib.reload(modules.clavicule)
@@ -21,6 +21,7 @@ importlib.reload(modules.stretch)
 importlib.reload(modules.hips)
 importlib.reload(modules.ribbon)
 importlib.reload(modules.globalscale)
+importlib.reload(modules.head)
 
 
 from modules import *
@@ -79,11 +80,11 @@ def create_window():
     cmds.separator(h=15)
     cmds.setParent('..')
 
-    cmds.frameLayout(label='Clavicule', collapsable=True, collapse=True)
+    cmds.frameLayout(label='Clavicle', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Locators', command=lambda x:clavicule.locClavicule(),width=100)
-    cmds.button(label='Create Clavicules', command=lambda x:clavicule.createClavicule(),width=100)
+    cmds.button(label='Create Loc', command=lambda x:clavicule.locClavicule(),width=100)
+    cmds.button(label='Create Clavicle', command=lambda x:clavicule.createClavicule(),width=100)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cb_jnt_clav= cmds.checkBox(label="Create",v=True)
@@ -182,7 +183,7 @@ def create_window():
     cmds.text(label="TOOLS", font = "boldLabelFont" , w = 300, align = "center")
     cmds.separator(h=8)
 
-    cmds.frameLayout(label='Lock Attribute', collapsable=True, collapse=True)
+    cmds.frameLayout(label='Lock Attribute',w = 300, collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
     cb_loc_Translate= cmds.checkBox(label="Translate",v=True)
@@ -199,6 +200,7 @@ def create_window():
     cmds.button(label='Lock/Unlock Translate', command=lambda x:tools.lockUnlock(cb_loc_Translate,cb_loc_tx,cb_loc_ty,cb_loc_tz,cb_loc_Rotate,cb_loc_rx,cb_loc_ry,cb_loc_rz),width=100)
 
     cmds.setParent('..')
+    cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
 
 
     cmds.text(label=" Match Ik/Fk ", font = "boldLabelFont" , w = 300, align = "left")

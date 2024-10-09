@@ -1,6 +1,9 @@
 import maya.cmds as cmds
 import smallUsefulFct
 import math
+import importlib
+importlib.reload(smallUsefulFct)
+
 
 ####################
 ###     HAND   ####
@@ -66,6 +69,11 @@ def ctrlHand():
     side=selObj[0][-1]
     Fingers=["thumb","index","middle","ring","pinky"]
     CTRL_Hand=[]
+    grp_Hand=f'grp_Hand_{side}'
+    
+    if not cmds.objExists(f'grp_Hand_{side}'):
+        grp_Hand = cmds.group(empty=True, name=f'grp_Hand_{side}')
+
     y=0
     for f in Fingers:
         cmds.select(clear=True)
@@ -79,7 +87,8 @@ def ctrlHand():
             if i>1:
                 cmds.parent(f'CTRL_{f}_0{i}_{side}_Offset',f'CTRL_{f}_0{i-1}_{side}') 
             y+=1
-        cmds.parent(f'CTRL_{f}_01_{side}_Offset',f'CTRL')
+        cmds.parent(f'CTRL_{f}_01_{side}_Offset',grp_Hand)
+    cmds.parent(grp_Hand,f'Bind_Hand_{side}')
 
 def mirorHand(cb_jnt,cb_ctrl):
     cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)

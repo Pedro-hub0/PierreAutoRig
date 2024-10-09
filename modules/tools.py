@@ -102,3 +102,24 @@ def lockUnlock(cb_loc_Translate,cb_loc_tx,cb_loc_ty,cb_loc_tz,cb_loc_Rotate,cb_l
             cmds.setAttr(obj + ".rotateX", lock=cb_loc_rx)
             cmds.setAttr(obj + ".rotateY", lock=cb_loc_ry)
             cmds.setAttr(obj + ".rotateZ", lock=cb_loc_rz)
+
+
+def parentshape():
+    selObj = cmds.ls(selection=True)
+    if len(selObj)!=2:
+        raise ValueError ("Select only 2 things")
+    # Select the child and parent objects
+    child_transform = selObj[0]  # The object with the shape you want to re-parent
+    parent_transform =selObj[1]  # The transform you want to parent the shape to
+
+    # Get the shape of the child
+    child_shape = cmds.listRelatives(child_transform, shapes=True, fullPath=True)[0]
+    parent_shape =cmds.listRelatives(parent_transform, shapes=True, fullPath=True)[0]
+    # Re-parent the shape to the new parent transform
+    cmds.parent(child_shape, parent_transform, shape=True, relative=True)
+
+    # Optionally, delete the old transform node (if it becomes empty after re-parenting)
+    if not cmds.listRelatives(child_transform, children=True):
+        cmds.delete(child_transform)
+    cmds.delete(parent_shape)
+    
