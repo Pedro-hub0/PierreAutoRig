@@ -83,7 +83,8 @@ def AttachRib(attach):
             cmds.pointConstraint(selObj[0],ARib,maintainOffset=False)
             cmds.pointConstraint(selObj[1],BRib,maintainOffset=False)
         else : 
-            print(f'{ARib} AND {BRib}')     
+            print(f'{ARib} AND {BRib}') 
+
         ##NON ROLL##
         ##Wrist --> Connect Arm fk and ik with condition at the Ribbon
         if obj in ("Elbow","Knee") :
@@ -138,7 +139,7 @@ def AttachRib(attach):
 
             axes=["X","Y","Z"]
             cmds.connectAttr(locs_NonRoll[0] + ".worldMatrix[0]", mult_matrix_node + ".matrixIn[0]")
-            cmds.connectAttr(locs_NonRoll[0] + ".worldInverseMatrix[0]", mult_matrix_node + ".matrixIn[1]")
+            cmds.connectAttr(locs_NonRoll[1] + ".worldInverseMatrix[0]", mult_matrix_node + ".matrixIn[1]")
             cmds.connectAttr(mult_matrix_node + ".matrixSum", decompose_node + ".inputMatrix")
             
             for a in axes:

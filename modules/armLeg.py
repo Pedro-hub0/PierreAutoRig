@@ -162,7 +162,7 @@ def createIkFk(sz):
         smallUsefulFct.move(Ctrl_Hand)
     if objName == "Leg" :
         if not cmds.objExists(f'CTRL_Foot_{side}'):
-            Ctrl_Hand=cmds.circle(name=f'CTRL_Foot_{side}',nr=[1,0,0])[0]
+            Ctrl_Hand=cmds.circle(name=f'CTRL_Foot_{side}',nr=[1,0,0],radius=size)[0]
             smallUsefulFct.set_curve_color(Ctrl_Hand,16)
             cmds.xform(Ctrl_Hand, t=TranslateJnt, ro=RotationJnt, ws=True)
             smallUsefulFct.move(Ctrl_Hand)
@@ -175,7 +175,7 @@ def createIkFk(sz):
     
     #Ik Fk
     # --> Create switch CTRL with attributes
-    Ctrl_SwitchIkFk = cmds.circle(name=f'CTRL_IkFk_{objName}_{side}')[0]
+    Ctrl_SwitchIkFk = cmds.circle(name=f'CTRL_IkFk_{objName}_{side}',radius=size)[0]
     # Get the translation values of the source object
     TranslateFk = cmds.xform(IkChain[0], q=True, t=True, ws=True)
     
