@@ -176,7 +176,7 @@ def create_window():
     cmds.separator(h=4)
     cmds.frameLayout(label='Head', collapsable=True, collapse=True)
     cmds.separator(h=8)
-    cmds.button(label='Head Structure', command=lambda x:head.,width=100)
+    cmds.button(label='Head Structure', command=lambda x:head.locHeadStructure,width=100)
     cmds.setParent('..')
     
     cmds.separator(h=8)
