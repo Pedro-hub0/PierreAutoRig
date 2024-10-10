@@ -34,7 +34,7 @@ def Stretchfct():
         else:
             grp_Locs = cmds.group(empty=True, name="Locs")
 
-        if cmds.listRelatives(grp_Locs,parent=True)[0] == None:
+        if cmds.listRelatives(grp_Locs,parent=True) == None:
             cmds.parent(grp_Locs,'GlobalMove')
         name3="Foot"
         if objName =="Arm":

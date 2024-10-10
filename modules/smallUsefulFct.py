@@ -66,6 +66,7 @@ def move(selected):
     offset2 = cmds.group(empty=True, name=selected + "_Offset")
     copy_transform(offset, offset2)
     cmds.parent(offset, offset2)
+    return offset2
 
 def hook(selected):   
     # Create an empty group with the "_Move" suffix

@@ -174,9 +174,17 @@ def create_window():
     cmds.button(label='Create Ctrl Global', command=lambda x:globalscale.CreateGlobal(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.separator(h=4)
+
     cmds.frameLayout(label='Head', collapsable=True, collapse=True)
     cmds.separator(h=8)
-    cmds.button(label='Head Structure', command=lambda x:head.locHeadStructure,width=100)
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cb_orga_locs_head= cmds.checkBox(label="Orga",v=False, w = 150)
+    cmds.button(label='Head Structure Locs',  w = 150,command=lambda x:head.CreatelocHeadStructure(cb_orga_locs_head),width=100)
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cmds.button(label='Create Joints', command=lambda x:head.HeadStructure(),width=100)
+    cmds.button(label='Create CTRL', command=lambda x:head.CreatelocHeadStructure(),width=100)
+    cmds.setParent('..')
     cmds.setParent('..')
     
     cmds.separator(h=8)
