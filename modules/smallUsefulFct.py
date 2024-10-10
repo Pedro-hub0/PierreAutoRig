@@ -56,8 +56,9 @@ def offset2(selected):
     cmds.parent(selected, offset)
     if  parent is not None:
         cmds.parent(offset,parent[0])
+    return offset
 
-def move(selected):   
+def move(selected):    
     # Create an empty group with the "_Offset" suffix
     offset = cmds.group(empty=True, name=selected + "_Move")
     copy_transform(selected, offset)
@@ -66,6 +67,21 @@ def move(selected):
     offset2 = cmds.group(empty=True, name=selected + "_Offset")
     copy_transform(offset, offset2)
     cmds.parent(offset, offset2)
+    return offset2
+
+def move2(selected):   
+    parent=cmds.listRelatives(selected,parent=True)
+    # Create an empty group with the "_Offset" suffix
+    offset = cmds.group(empty=True, name=selected + "_Move")
+    copy_transform(selected, offset)
+    cmds.parent(selected, offset)
+    # Create an empty group with the "_Offset" suffix
+    offset2 = cmds.group(empty=True, name=selected + "_Offset")
+    copy_transform(offset, offset2)
+    cmds.parent(offset, offset2)
+    if  parent is not None:
+        cmds.parent(offset2,parent[0])
+
     return offset2
 
 def hook(selected):   
@@ -81,7 +97,27 @@ def hook(selected):
     offset3 = cmds.group(empty=True, name=selected + "_Offset")
     copy_transform(offset2, offset3)
     cmds.parent(offset2, offset3)
+    return offset3
     
+def hook2(selected):  
+    parent=cmds.listRelatives(selected,parent=True) 
+    # Create an empty group with the "_Move" suffix
+    offset = cmds.group(empty=True, name=selected + "_Move")
+    copy_transform(selected, offset)
+    cmds.parent(selected, offset)
+    # Create an empty group with the "_Hook" suffix
+    offset2 = cmds.group(empty=True, name=selected + "_Hook")
+    copy_transform(offset, offset2)
+    cmds.parent(offset, offset2)
+    # Create an empty group with the "_Offset" suffix
+    offset3 = cmds.group(empty=True, name=selected + "_Offset")
+    copy_transform(offset2, offset3)
+    cmds.parent(offset2, offset3)
+    if  parent is not None:
+        cmds.parent(offset3,parent[0])
+    return offset3
+
+
 def organiser():
     if cmds.objExists("CTRL"):
         grp_Ctrl="CTRL"
@@ -271,3 +307,14 @@ def cleanTransform(object_name):
     cmds.setAttr(f"{object_name}.rotateX", 0)
     cmds.setAttr(f"{object_name}.rotateY", 0)
     cmds.setAttr(f"{object_name}.rotateZ", 0)
+
+def get_translate_between(obj1, obj2):
+    # Get the world space positions of both objects
+    pos1 = cmds.xform(obj1, query=True, worldSpace=True, translation=True)
+    pos2 = cmds.xform(obj2, query=True, worldSpace=True, translation=True)
+
+    # Calculate the midpoint
+    midpoint = [(pos1[0] + pos2[0]) / 2, 
+                (pos1[1] + pos2[1]) / 2, 
+                (pos1[2] + pos2[2]) / 2]
+    return midpoint

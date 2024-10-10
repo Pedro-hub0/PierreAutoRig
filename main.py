@@ -183,7 +183,7 @@ def create_window():
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cmds.button(label='Create Joints', command=lambda x:head.HeadStructure(),width=100)
-    cmds.button(label='Create CTRL', command=lambda x:head.CreatelocHeadStructure(),width=100)
+    cmds.button(label='Create CTRL', command=lambda x:head.CtrlHeadStructure(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.setParent('..')
     
