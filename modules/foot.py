@@ -267,11 +267,11 @@ def ConnectFoot():
         initialiseRemap(remapFlexToe,-1,1,-20,20)
         initialiseRemap(remapToeRotY,-1,1,-70,70)
 
-        initialiseRemap(remapFRPivotRotX,0,1,0,45)
+        initialiseRemap(remapFRPivotRotX,0,1,0,-45)
 
 
  
-        initialiseRemap(remapFRToeRotX,0,1,0,-45)
+        initialiseRemap(remapFRToeRotX,0,1,0,45)
         initialiseRemap(remapFRHeelRotX,-1,0,-40,0)
 
         initialiseRemap(remapHeelRotY,-1,1,-70,40)
