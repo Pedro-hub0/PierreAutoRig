@@ -103,14 +103,19 @@ def HeadStructure():
         cmds.parent(f'Bind_neck_end','JNT')
 
 def CtrlHeadStructure(sz):
-    CTRLS_hierarchy = ["Master_Head_01","CTRL_Head_01","Master_Head_02","CTRL_Head_02","Master_Skull","CTRL_Skull"]
+
+    ##Initialisation
+    CTRLS_hierarchy = ["CTRL_Head_01","Master_Head_01","CTRL_Head_02","Master_Head_02","CTRL_Skull","Master_Skull"]
+    jntConstraint=["Bind_Head_Pivot_01","Bind_Head_Pivot_02","Bind_Jaw_Up_01"]
     CTRL_names_Eyes=["CTRL_Eyelid_Down_L","CTRL_Eyelid_Up_L","CTRL_Eye_L","CTRL_Eyelid_Down_R","CTRL_Eyelid_Up_R","CTRL_Eye_R"]
-    jnt_Eyes_names = ["Bind_Eyelid_Down_L","Bind_Eyelid_Up_L","Bind_Eye_L","Bind_Eyelid_Down_R","Bind_Eyelid_Up_R","Bind_Eye_R"]
+    jnt_Eyes_names = ["Bind_Eyelid_Down_End_L","Bind_Eyelid_Up_End_L","Bind_Eye_L","Bind_Eyelid_Down_End_R","Bind_Eyelid_Up_End_R","Bind_Eye_R"]
+    jnt_Eyes_names2 = ["Bind_Eyelid_Down_L","Bind_Eyelid_Up_L","Bind_Eye_L","Bind_Eyelid_Down_R","Bind_Eyelid_Up_R","Bind_Eye_R"]
+
     tr_Head01=cmds.xform('Bind_Head_Pivot_01', query=True, translation=True, worldSpace=True)
     tr_Head02=cmds.xform('Bind_Head_Pivot_02', query=True, translation=True, worldSpace=True)
- 
     size=cmds.intField(sz, query=True, value=True)
-
+    
+    ##Creation
     for obj in CTRLS_hierarchy:
         if obj.split('_')[0] == "CTRL":
             cmds.circle(name=obj,radius=size,nr=[0,1,0])
@@ -124,15 +129,55 @@ def CtrlHeadStructure(sz):
 
     for obj in CTRL_names_Eyes:
         cmds.circle(name=obj,radius=size/2,nr=[0,0,0])
-        
+    
     for i in range(len(jnt_Eyes_names)):
         tr=cmds.xform(jnt_Eyes_names[i], query=True, translation=True, worldSpace=True)
-        cmds.xform(CTRL_names_Eyes[i], translation=tr, worldSpace=True)   
+        if CTRL_names_Eyes[i].split("_")[1]==f"Eye":
+            pos=[tr[0],tr[1],tr[2]+(size*2)]
+        else:
+            pos=tr
+        cmds.xform(CTRL_names_Eyes[i], translation=pos, worldSpace=True)   
 
+    ctrl_Eyes=cmds.circle(name='CTRL_Eyes',radius=size/2,nr=[0,0,0])[0]
+    cmds.xform('CTRL_Eyes', translation=smallUsefulFct.get_translate_between('CTRL_Eye_R','CTRL_Eye_L'), worldSpace=True)   
+    
+    ##Organisation
     for i in range(len(CTRLS_hierarchy)-1,-1,-1): 
         if i>0:
             cmds.parent(CTRLS_hierarchy[i],CTRLS_hierarchy[i-1])
     
+    # Eyes
+    for eye in CTRL_names_Eyes: 
+        cmds.parent(eye,"Master_Skull")
 
-    ctrl_Eyes=cmds.circle(name='CTRL_Eyes',radius=size/2,nr=[0,0,0])
-    cmds.xform(CTRL_names_Eyes[i], translation=smallUsefulFct.get_translate_between('CTRL_Eye_R','CTRL_Eye_L'), worldSpace=True)   
+    cmds.parent(ctrl_Eyes,"Master_Skull") 
+    cmds.parent(CTRL_names_Eyes[2],ctrl_Eyes)
+    cmds.parent(CTRL_names_Eyes[5],ctrl_Eyes)
+
+    
+    ##Offset / Erase Transform
+    for eye in CTRL_names_Eyes: 
+        smallUsefulFct.hook2(eye)
+    
+    smallUsefulFct.move2(ctrl_Eyes)
+    ctrl_head_offset=smallUsefulFct.move('CTRL_Head_01')
+
+    
+    ##Constraints
+    # Head
+    a=1
+    for i in range(len(jntConstraint)):
+        cmds.orientConstraint(CTRLS_hierarchy[a],jntConstraint[i], maintainOffset=True, weight=1)
+        a=a+2
+
+    # Eyes
+    for i in range(len(CTRL_names_Eyes)):
+
+        if not CTRL_names_Eyes[i].split("_")[1]==f"Eye":
+            cmds.aimConstraint(CTRL_names_Eyes[i],f'{jnt_Eyes_names2[i]}_Hook',w=1,aim=[0,0,1],u=[0,1,0],wut=2,wu=[0,1,0],wuo=CTRL_names_Eyes[i], maintainOffset=True, weight=1)
+        else:
+            cmds.aimConstraint(CTRL_names_Eyes[i],f'{jnt_Eyes_names2[i]}',w=1,aim=[0,0,1],u=[0,1,0],wut=2,wu=[0,1,0],wuo=CTRL_names_Eyes[i],maintainOffset=True, weight=1)
+
+    
+    cmds.parent(ctrl_head_offset,'CTRL_Torso')
+    

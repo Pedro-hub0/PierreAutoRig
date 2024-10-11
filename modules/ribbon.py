@@ -88,7 +88,6 @@ def AttachRib(attach):
         ##NON ROLL##
         ##Wrist --> Connect Arm fk and ik with condition at the Ribbon
         if obj in ("Elbow","Knee") :
-            print("Wsh tu fais quoi la ??"+obj)
             condition_node_elbow = cmds.createNode('condition', name=f'condition_{objextremity}_{side}')
             if obj=="Knee":
                 cmds.connectAttr(f'CTRL_Foot_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')                

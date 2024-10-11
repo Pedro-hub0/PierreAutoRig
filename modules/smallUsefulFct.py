@@ -41,13 +41,14 @@ def copy_transform(source, destination):
     cmds.rotate(rotation[0], rotation[1], rotation[2], destination, absolute=True)
     
 def offset(selected):   
-
+    cmds.select(clear=True)
     # Create an empty group with the "_Offset" suffix
     offset = cmds.group(empty=True, name=selected + "_Offset")
     copy_transform(selected, offset)
     cmds.parent(selected, offset)
 
-def offset2(selected):   
+def offset2(selected):  
+    cmds.select(clear=True) 
     # Create an empty group with the "_Offset" suffix
     offset = cmds.group(empty=True, name=selected + "_Offset")
     parent=cmds.listRelatives(selected,parent=True)
@@ -59,6 +60,7 @@ def offset2(selected):
     return offset
 
 def move(selected):    
+    cmds.select(clear=True)
     # Create an empty group with the "_Offset" suffix
     offset = cmds.group(empty=True, name=selected + "_Move")
     copy_transform(selected, offset)
@@ -72,6 +74,7 @@ def move(selected):
 def move2(selected):   
     parent=cmds.listRelatives(selected,parent=True)
     # Create an empty group with the "_Offset" suffix
+    cmds.select(clear=True)
     offset = cmds.group(empty=True, name=selected + "_Move")
     copy_transform(selected, offset)
     cmds.parent(selected, offset)
@@ -84,7 +87,8 @@ def move2(selected):
 
     return offset2
 
-def hook(selected):   
+def hook(selected):  
+    cmds.select(clear=True) 
     # Create an empty group with the "_Move" suffix
     offset = cmds.group(empty=True, name=selected + "_Move")
     copy_transform(selected, offset)
@@ -100,6 +104,7 @@ def hook(selected):
     return offset3
     
 def hook2(selected):  
+    cmds.select(clear=True)
     parent=cmds.listRelatives(selected,parent=True) 
     # Create an empty group with the "_Move" suffix
     offset = cmds.group(empty=True, name=selected + "_Move")

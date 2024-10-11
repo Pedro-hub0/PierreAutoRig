@@ -31,7 +31,6 @@ def createSpine(spineIk,spineFk,sz) :
     if not cmds.objExists('Loc_Shoulder') or not cmds.objExists('Loc_Root'):
         raise ValueError("Create Locators")
 
-    
     TranslateJnts = [cmds.xform(LocName[0], q=True, t=True, ws=True),cmds.xform(LocName[1], q=True, t=True, ws=True)]
    
     #CREATE JOINT IN A LINE BETWEEN THE 2 JOINTS
