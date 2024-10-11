@@ -49,6 +49,8 @@ Hips:(The 2 Legs need to be created plus the Spine)
 - Create CTRL Hips: Create the Ctrls and the links/parents
 
 Attach Ribbon: 
+ - You need to have a Ribbon already created with a good nomenclature: Ribbon_MatX.ma /Ribbon_01 //Ctrl_Global_Ribbon_01// Bind_Ribbon_A01 //Bind_Ribbon_B01 //CTRL_Ribbon_Mid_01
+ - You need tu load the plugin quatNodes.mll
 - Check the elements where you want a Ribbon.
 - Attach : It will import, rename and attach the Ribbon where you check it
 
