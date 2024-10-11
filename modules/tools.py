@@ -29,7 +29,7 @@ def matchIkFk(value):
 
 
     if objName == "Arm" :
-        Fk_ctrl_Names=[f'CTRL_Shoulder_{side}',f'CTRL_Elbow_{side}',f'CTRL_Wrist_{side}']
+        Fk_ctrl_Names=[f'CTRL_Fk_Shoulder_{side}',f'CTRL_Fk_Elbow_{side}',f'CTRL_Fk_Wrist_{side}']
         Fk_jnt_Names = [f'Fk_Shoulder_{side}',f'Fk_Elbow_{side}',f'Fk_Wrist_{side}']
         Ik_jnt_Names = [f'DrvJnt_Shoulder_{side}',f'DrvJnt_Elbow_{side}',f'DrvJnt_Wrist_{side}']
     elif objName == "Leg" :

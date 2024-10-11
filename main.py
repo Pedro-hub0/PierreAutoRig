@@ -12,7 +12,7 @@ sys.path.append(script_dir)
 
 import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon,modules.globalscale,modules.head
 
-importlib.reload(modules.armLeg   )
+importlib.reload(modules.armLeg)
 importlib.reload(modules.clavicule)
 importlib.reload(modules.foot)
 importlib.reload(modules.spine)
