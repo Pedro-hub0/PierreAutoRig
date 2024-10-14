@@ -122,4 +122,11 @@ def parentshape():
     if not cmds.listRelatives(child_transform, children=True):
         cmds.delete(child_transform)
     cmds.delete(parent_shape)
-    
+   
+def selectJnt(name):
+    pattern= name+"*"
+    # Get all joints that match the pattern
+    joints = cmds.ls(pattern, type="joint")
+
+    # Select the found joints
+    cmds.select(joints, r=True)

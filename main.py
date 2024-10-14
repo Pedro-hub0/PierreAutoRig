@@ -213,7 +213,7 @@ def create_window():
 
     cmds.setParent('..')
     cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
-
+    cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("Bind"),width=300)
 
     cmds.text(label=" Match Ik/Fk ", font = "boldLabelFont" , w = 300, align = "left")
     cmds.separator(h=5)
