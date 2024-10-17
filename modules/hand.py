@@ -48,8 +48,8 @@ def createHand():
     #Parent To Bind Hand And Orient
     for f in Fingers:
         cmds.parent(f'Bind_{f}_01_{side}',f'Bind_Hand_{side}')
-        #Orient
-        cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='yup', ch=True, zso=True)
+        #Orient joint -e  -oj xyz -secondaryAxisOrient xup -ch -zso;
+        cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='xup', ch=True, zso=True)
         cmds.joint(f'Bind_{f}_04_{side}',e=True, oj='none', ch=True, zso=True)     
     #Parent Controllers
     #cmds.delete(f'Loc_Hand_{side}')
