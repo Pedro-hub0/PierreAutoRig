@@ -502,7 +502,7 @@ def createAttributFoot(ctrlName,side):
     cmds.addAttr(ctrlName, longName='Flex_Toe_'+side, attributeType='float',minValue=-1.0, maxValue=1.0, defaultValue=0,keyable=True)
     cmds.addAttr(ctrlName, longName='Bank_'+side, attributeType='float',minValue=-30.0, maxValue=30.0, defaultValue=0,keyable=True)
 
-    cmds.addAttr(ctrlName, longName='_', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")    
-    cmds.addAttr(ctrlName, longName='Stretch_Leg', attributeType='bool', defaultValue=0,keyable=True)
-    cmds.addAttr(ctrlName, longName='_____', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")
+    #cmds.addAttr(ctrlName, longName='_', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")    
+    #cmds.addAttr(ctrlName, longName='Stretch_Leg', attributeType='bool', defaultValue=0,keyable=True)
+    #cmds.addAttr(ctrlName, longName='_____', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")
 
