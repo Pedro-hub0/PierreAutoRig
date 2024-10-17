@@ -61,8 +61,10 @@ def createHand():
         cmds.parent(f'Loc_Hand_{side}',"Grp_temp_Locs")
 
 
-def ctrlHand():
+def ctrlHand(sz):
     #Create Controllers + Move
+    sz=cmds.intField(sz, query=True, value=True)
+
     selObj = cmds.ls(selection=True)
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")
@@ -80,7 +82,7 @@ def ctrlHand():
         for i in range(1,5):
             translateJnt= cmds.xform(f'Bind_{f}_0{i}_{side}', query=True, translation=True, worldSpace=True)
             rotateJnt= cmds.xform(f'Bind_{f}_0{i}_{side}', query=True, rotation=True, worldSpace=True)
-            CTRL_Hand.append(cmds.circle(name=f'CTRL_{f}_0{i}_{side}',nr=[1,0,0],radius=0.5)[0])    
+            CTRL_Hand.append(cmds.circle(name=f'CTRL_{f}_0{i}_{side}',nr=[1,0,0],radius=sz*0.5)[0])    
             cmds.xform(CTRL_Hand[y], translation=translateJnt, ro=rotateJnt, worldSpace=True)
             smallUsefulFct.offset(CTRL_Hand[y])
             cmds.orientConstraint(CTRL_Hand[y],f'Bind_{f}_0{i}_{side}', maintainOffset=True, weight=1)
@@ -90,7 +92,8 @@ def ctrlHand():
         cmds.parent(f'CTRL_{f}_01_{side}_Offset',grp_Hand)
     cmds.parent(grp_Hand,f'Bind_Hand_{side}')
 
-def mirorHand(cb_jnt,cb_ctrl):
+def mirorHand(cb_jnt,cb_ctrl,sz):
+    sz=cmds.intField(sz, query=True, value=True)
     cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
     cb_jnt_val = cmds.checkBox(cb_jnt, query=True, value=True)
 
@@ -146,4 +149,4 @@ def mirorHand(cb_jnt,cb_ctrl):
         createHand()
     if cb_ctrl_val:
         cmds.select(f"CTRL_IkFk_Arm_{otherside}")
-        ctrlHand()
+        ctrlHand(sz)

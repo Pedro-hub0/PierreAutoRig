@@ -7,8 +7,14 @@ import math
 ###         MATCH IK FK        ####
 ###################################
 
-def matchIkFk(value):
+def matchIkFk(value,txt_n):
 
+    # Get the text entered in the field
+    txt_namespace = cmds.textField(txt_n, query=True, text=True)
+    if txt_namespace:
+        txt_namespace=f"{txt_namespace}:"
+    else:
+        txt_namespace=""
     #INITIALISATIONS VARIABLES
         #Object
     selObj = cmds.ls(selection=True)
@@ -23,19 +29,19 @@ def matchIkFk(value):
 
     isIk=value
     if value == 2:
-        isIk=cmds.getAttr(f'CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk')
+        isIk=cmds.getAttr(f'{txt_namespace}CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk')
     else:
         isIk=value
 
 
     if objName == "Arm" :
-        Fk_ctrl_Names=[f'CTRL_Fk_Shoulder_{side}',f'CTRL_Fk_Elbow_{side}',f'CTRL_Fk_Wrist_{side}']
-        Fk_jnt_Names = [f'Fk_Shoulder_{side}',f'Fk_Elbow_{side}',f'Fk_Wrist_{side}']
-        Ik_jnt_Names = [f'DrvJnt_Shoulder_{side}',f'DrvJnt_Elbow_{side}',f'DrvJnt_Wrist_{side}']
+        Fk_ctrl_Names=[f'{txt_namespace}CTRL_Fk_Shoulder_{side}',f'{txt_namespace}CTRL_Fk_Elbow_{side}',f'{txt_namespace}CTRL_Fk_Wrist_{side}']
+        Fk_jnt_Names = [f'{txt_namespace}Fk_Shoulder_{side}',f'{txt_namespace}Fk_Elbow_{side}',f'{txt_namespace}Fk_Wrist_{side}']
+        Ik_jnt_Names = [f'{txt_namespace}DrvJnt_Shoulder_{side}',f'{txt_namespace}DrvJnt_Elbow_{side}',f'{txt_namespace}DrvJnt_Wrist_{side}']
     elif objName == "Leg" :
-        Fk_ctrl_Names=[f'CTRL_Fk_Leg_{side}',f'CTRL_Fk_Knee_{side}',f'CTRL_Fk_Foot_{side}']
-        Fk_jnt_Names = [f'Fk_Leg_{side}',f'Fk_Knee_{side}',f'Fk_Ankle_{side}']
-        Ik_jnt_Names = [f'DrvJnt_Leg_{side}',f'DrvJnt_Knee_{side}',f'DrvJnt_Ankle_{side}']
+        Fk_ctrl_Names=[f'{txt_namespace}CTRL_Fk_Leg_{side}',f'{txt_namespace}CTRL_Fk_Knee_{side}',f'{txt_namespace}CTRL_Fk_Foot_{side}']
+        Fk_jnt_Names = [f'{txt_namespace}Fk_Leg_{side}',f'{txt_namespace}Fk_Knee_{side}',f'{txt_namespace}Fk_Ankle_{side}']
+        Ik_jnt_Names = [f'{txt_namespace}DrvJnt_Leg_{side}',f'{txt_namespace}DrvJnt_Knee_{side}',f'{txt_namespace}DrvJnt_Ankle_{side}']
     else :
         raise ValueError("You need to select somethind that's end up by Arm_L or Leg_R for example ")
     
@@ -44,13 +50,13 @@ def matchIkFk(value):
     rotate_Fk=[]
     translate_Ik=[]
     translate_Fk=[] 
-    pv_Ctrl=f'Pv_{objName}_{side}'
+    pv_Ctrl=f'{txt_namespace}Pv_{objName}_{side}'
     if objName == "Arm":
-        ik_Ctrl=f'CTRL_Hand_{side}'
+        ik_Ctrl=f'{txt_namespace}CTRL_Hand_{side}'
     if objName == "Leg":
-        ik_Ctrl=f'CTRL_Foot_{side}'
+        ik_Ctrl=f'{txt_namespace}CTRL_Foot_{side}'
 
-    cmds.setAttr(f'CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk',1)
+    cmds.setAttr(f'{txt_namespace}CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk',1)
     #Copy transform
     smallUsefulFct.copy_rotation_to_list(Ik_jnt_Names,rotate_Ik)
     smallUsefulFct.copy_rotation_to_list(Fk_jnt_Names,rotate_Fk)
@@ -64,13 +70,13 @@ def matchIkFk(value):
         cmds.xform(pv_Ctrl, translation=translate_Fk[1], worldSpace=True)
     elif isIk == 0:
         #Rotate Fk Ctrl to Jnt drvjnt Shoulder/Elbow/Wrist
-        test=cmds.getAttr(f'CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk')
+        test=cmds.getAttr(f'{txt_namespace}CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk')
 
 
         for i in range(0,len(Fk_ctrl_Names)):
             cmds.xform(Fk_ctrl_Names[i],rotation=rotate_Ik[i], worldSpace=True)
 
-        cmds.setAttr(f'CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk',0)
+        cmds.setAttr(f'{txt_namespace}CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk',0)
 
 
     else:

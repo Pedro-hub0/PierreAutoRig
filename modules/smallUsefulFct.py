@@ -276,7 +276,6 @@ def importFileFromScene(file):
     if scene_path:
         # Get the directory of the current scene
         scene_dir = os.path.dirname(scene_path)
-        
         # Specify the file you want to import (replace "myFile.ma" with your file name)
         file_to_import = os.path.join(scene_dir, f"{file}.ma")
 
