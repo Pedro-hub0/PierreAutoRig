@@ -49,7 +49,11 @@ def createHand():
     for f in Fingers:
         cmds.parent(f'Bind_{f}_01_{side}',f'Bind_Hand_{side}')
         #Orient joint -e  -oj xyz -secondaryAxisOrient xup -ch -zso;
-        cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='xup', ch=True, zso=True)
+        if f == "thumb":
+        #joint -e  -oj xyz -secondaryAxisOrient zup -ch -zso; 
+            cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='zup', ch=True, zso=True)
+        else:
+            cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='xup', ch=True, zso=True)
         cmds.joint(f'Bind_{f}_04_{side}',e=True, oj='none', ch=True, zso=True)     
     #Parent Controllers
     #cmds.delete(f'Loc_Hand_{side}')
@@ -64,7 +68,6 @@ def createHand():
 def ctrlHand(sz):
     #Create Controllers + Move
     sz=cmds.intField(sz, query=True, value=True)
-
     selObj = cmds.ls(selection=True)
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")
@@ -84,7 +87,7 @@ def ctrlHand(sz):
             rotateJnt= cmds.xform(f'Bind_{f}_0{i}_{side}', query=True, rotation=True, worldSpace=True)
             CTRL_Hand.append(cmds.circle(name=f'CTRL_{f}_0{i}_{side}',nr=[1,0,0],radius=sz*0.5)[0])    
             cmds.xform(CTRL_Hand[y], translation=translateJnt, ro=rotateJnt, worldSpace=True)
-            smallUsefulFct.offset(CTRL_Hand[y])
+            smallUsefulFct.move2(CTRL_Hand[y])
             cmds.orientConstraint(CTRL_Hand[y],f'Bind_{f}_0{i}_{side}', maintainOffset=True, weight=1)
             if i>1:
                 cmds.parent(f'CTRL_{f}_0{i}_{side}_Offset',f'CTRL_{f}_0{i-1}_{side}') 
@@ -92,7 +95,7 @@ def ctrlHand(sz):
         cmds.parent(f'CTRL_{f}_01_{side}_Offset',grp_Hand)
     cmds.parent(grp_Hand,f'Bind_Hand_{side}')
 
-def mirorHand(cb_jnt,cb_ctrl,sz):
+"""def mirorHand(cb_jnt,cb_ctrl,sz):
     sz=cmds.intField(sz, query=True, value=True)
     cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
     cb_jnt_val = cmds.checkBox(cb_jnt, query=True, value=True)
@@ -149,4 +152,123 @@ def mirorHand(cb_jnt,cb_ctrl,sz):
         createHand()
     if cb_ctrl_val:
         cmds.select(f"CTRL_IkFk_Arm_{otherside}")
+        ctrlHand(sz)"""
+
+def mirorHand2(cb_ctrl,sz):
+
+    cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
+    selObj = cmds.ls(selection=True)
+    side=selObj[0][-1]
+    otherside = "R" if side == "L" else "L"
+
+
+    #Create mirror
+    #Duplicate Hand
+    tempJnt=cmds.duplicate(f'Bind_Hand_{side}', rc=True)
+    #Parent to Bind_root
+    cmds.parent(tempJnt[0],"Bind_Root")
+    #Erase non joint things
+    smallUsefulFct.delete_non_joints_in_hierarchy(tempJnt)
+
+    #Mirror mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+    newJnts=cmds.mirrorJoint(tempJnt[0],mirrorYZ=True,mirrorBehavior=True,searchReplace=(f'_{side}', f'_{otherside}'))
+    #Delete temp Fk
+    cmds.delete(tempJnt[0])
+    #if there isn't a Bind Hand, parent and offset the hand to sort it well
+    if not cmds.objExists(f'Bind_Hand_{otherside}'):
+        newHand=cmds.rename(newJnts[0],f'Bind_Hand_{otherside}')
+        of_newhand=smallUsefulFct.move2(newHand)
+        if cmds.objExists(f'Grp_Jnt_Arm_{otherside}'):
+            cmds.parent(of_newhand,f'Grp_Jnt_Arm_{otherside}')
+    
+    #if Bin Hand already exist, sort everything and correct the name 
+    else:
+        
+        children = cmds.listRelatives(newJnts[0],children=True)
+        for c in children:
+            cmds.parent(c,f'Bind_Hand_{otherside}')
+        cmds.delete(newJnts[0])
+        all_children_BH = cmds.listRelatives(f'Bind_Hand_{otherside}', allDescendents=True)
+        #Erase if ther is a number at the end 
+        for child in all_children_BH:
+            end=child[-1]
+            if cmds.objExists(child):
+                if cmds.objectType(child) == "joint":
+                    if end != otherside: 
+                        cmds.rename(child,child[:-1])
+            
+    if cb_ctrl_val:
+        cmds.select(f"CTRL_IkFk_Arm_{otherside}")
         ctrlHand(sz)
+
+
+
+def CtrlPoses(size):
+    #Initialise
+    selObj = cmds.ls(selection=True)
+    side=selObj[0][-1]
+    sz=cmds.intField(size, query=True, value=True)
+    Att=["Spread","Relax","Scrunch","Bend","Curl"]
+    Fingers=["thumb","index","middle","ring","pinky"]
+    AttCurl=['CurlThumb', 'CurlIndex','CurlMiddle','CurlRing','CurlPinky']
+    valueAttribute = [
+    [[0, 0, 0], [-(3/2), 0, 0], [-(1/2), 0, 0], [(1/2), 0, 0], [(3/2), 0, 0]],
+    [[-1/2, -1/2, -1/2], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(1/2), -(1/2), -(1/2)], [-1, -1, -1]],
+    [[0, 0, 0], [1, -1, -2], [1, -1, -2], [1, -1, -2], [1, -1, -2]],
+    [[0, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0]],
+    [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]
+]
+    #valueAttribute=[[[0,0,0],[-(3/2),0,0],[-(1/2),0,0],[(1/2),0,0],[(3/2),0,0]]  ,  [[-1/2,-1/2,-1/2],[-(1/4),-(1/4),-(1/4)],[-(2/4),-(2/4),-(2/4)],[-(1/2),-(1/2),-(1/2)][-1,-1,-1]]    ,    [[0,0,0],[1,(-1),(-2)],[1,(-1),(-2)],[1,(-1),(-2)],[1,(-1),(-2)]]       ,     [[0,0,0],[-1,0,0],[-1,0,0],[-1,0,0],[-1,0,0]]      ,     [[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1]]     ]
+    plusMinusNode=[]
+
+    #Create Ctrl
+    CtrlPose=cmds.circle(name=f'CTRL_Poses_Finger_{side}',nr=[1,0,0],radius=sz)[0]
+    #Move
+    tr=cmds.xform(f"Bind_Hand_{side}",translation=True,worldSpace=True ,query=True,)
+    cmds.xform(CtrlPose, translation=[tr[0], tr[1]+10, tr[2]], worldSpace=True)
+
+    #Put some attribute
+    createAttributHand(CtrlPose)
+    #Create the attributes 
+
+    ##NODALES##
+    #Link Ctrl to plus minus average
+    for f in Fingers:
+        # Create the plusMinusAverage node
+
+        tempnode=cmds.createNode('plusMinusAverage', name=f'pma_{f}_{side}')
+        plusMinusNode.append(tempnode)
+        # Set the operation --> 1 = sum
+        cmds.setAttr(f'{tempnode}.operation', 1)
+    
+    ##Connect nodes
+    for iAtt in range(0,len(Att)):
+        for iFing in range(0,len(Fingers)):
+            for j in range(0,3):
+                attrCalcul=cmds.getAttr(f'{CtrlPose}.{Att[iAtt]}')*valueAttribute[iAtt][iFing][j]
+                cmds.setAttr(plusMinusNode[iFing],f"={CtrlPose}.{Att[iAtt]}*{valueAttribute[iAtt][iFing][j]}")
+
+
+
+
+
+
+
+def createAttributHand(ctrlName):
+    #Create attribute in the controller
+    cmds.addAttr(ctrlName, longName='___', attributeType='enum', enumName='____', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='Spread', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='Relax', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='Scrunch', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='Bend', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='Curl', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='____', attributeType='enum', enumName='_____', defaultValue=0,keyable=True)    
+    cmds.addAttr(ctrlName, longName='CurlThumb', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='CurlIndex', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='CurlMiddle', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='CurlRing', attributeType='float', defaultValue=0,keyable=True)
+    cmds.addAttr(ctrlName, longName='CurlPinky', attributeType='float', defaultValue=0,keyable=True)
+
+    #cmds.addAttr(ctrlName, longName='_', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")    
+    #cmds.addAttr(ctrlName, longName='Stretch_Leg', attributeType='bool', defaultValue=0,keyable=True)
+    #cmds.addAttr(ctrlName, longName='_____', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")

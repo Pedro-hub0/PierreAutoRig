@@ -28,7 +28,7 @@ def create_window():
         cmds.deleteUI("myWindow", window=True)
 
     # Create the window
-    window_name = cmds.window("myWindow", title="PierreAutoRig01", widthHeight=(310, 100), sizeable=False)
+    window_name = cmds.window("myWindow", title="MatchIkFk_PierreAuto", widthHeight=(310, 100), sizeable=False)
     # Create a layout for the window
     column_layout= cmds.columnLayout(adjustableColumn=True)
 

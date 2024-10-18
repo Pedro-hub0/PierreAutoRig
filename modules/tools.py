@@ -1,6 +1,8 @@
 import maya.cmds as cmds
 import smallUsefulFct
 import math
+import importlib
+importlib.reload(smallUsefulFct)
 
 
 ###################################

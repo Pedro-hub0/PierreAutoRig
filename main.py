@@ -10,7 +10,7 @@ script_dir = os.path.dirname(__file__)
 # Add that folder to sys.path
 sys.path.append(script_dir)
 
-import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon,modules.globalscale,modules.head
+import modules.armLeg, modules.clavicule, modules.foot, modules.spine, modules.tools, modules.stretch,modules.hips,modules.ribbon,modules.globalscale,modules.head,modules.hand
 
 importlib.reload(modules.armLeg)
 importlib.reload(modules.clavicule)
@@ -22,6 +22,7 @@ importlib.reload(modules.hips)
 importlib.reload(modules.ribbon)
 importlib.reload(modules.globalscale)
 importlib.reload(modules.head)
+importlib.reload(modules.hand)
 
 
 from modules import *
@@ -118,11 +119,12 @@ def create_window():
     cmds.button(label='Create Hand', command=lambda x:hand.createHand(),width=100)
     cmds.button(label='Create Controllers', command=lambda x: hand.ctrlHand(sizeCtrlArm),width=100)
     cmds.setParent('..')
-    cmds.rowLayout(numberOfColumns=3, columnWidth3=[75,75,150])
-    cb_jnt_foot = cmds.checkBox(label="Joints")
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cb_ctrl_foot = cmds.checkBox(label="Ctrl")
-    cmds.button(label='Mirror', command=lambda x:hand.mirorHand(cb_jnt_foot,cb_ctrl_foot,sizeCtrlArm),width=100)
+    cmds.button(label='Mirror', command=lambda x:hand.mirorHand2(cb_ctrl_foot,sizeCtrlArm),width=100)
     cmds.setParent('..')
+    cmds.button(label='Hand Attribut', command=lambda x:hand.CtrlPoses(sizeCtrlArm),width=100)
+
     cmds.separator(h=8)
     cmds.setParent('..')
 
