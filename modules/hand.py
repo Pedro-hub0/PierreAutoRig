@@ -85,7 +85,10 @@ def ctrlHand(sz):
         for i in range(1,5):
             translateJnt= cmds.xform(f'Bind_{f}_0{i}_{side}', query=True, translation=True, worldSpace=True)
             rotateJnt= cmds.xform(f'Bind_{f}_0{i}_{side}', query=True, rotation=True, worldSpace=True)
-            CTRL_Hand.append(cmds.circle(name=f'CTRL_{f}_0{i}_{side}',nr=[1,0,0],radius=sz*0.5)[0])    
+            tempCtrl=cmds.circle(name=f'CTRL_{f}_0{i}_{side}',nr=[1,0,0],radius=sz*0.5)[0]
+            smallUsefulFct.set_curve_color(tempCtrl,30)
+            CTRL_Hand.append(tempCtrl)    
+            
             cmds.xform(CTRL_Hand[y], translation=translateJnt, ro=rotateJnt, worldSpace=True)
             smallUsefulFct.move2(CTRL_Hand[y])
             cmds.orientConstraint(CTRL_Hand[y],f'Bind_{f}_0{i}_{side}', maintainOffset=True, weight=1)
@@ -207,26 +210,29 @@ def CtrlPoses(size):
     #Initialise
     selObj = cmds.ls(selection=True)
     side=selObj[0][-1]
+    if side not in ["L","R"]: 
+        raise ValueError("You need to select something which finish by L or R ")
     sz=cmds.intField(size, query=True, value=True)
     Att=["Spread","Relax","Scrunch","Bend","Curl"]
     Fingers=["thumb","index","middle","ring","pinky"]
     AttCurl=['CurlThumb', 'CurlIndex','CurlMiddle','CurlRing','CurlPinky']
+    axe=['x','y','z']
     valueAttribute = [
     [[0, 0, 0], [-(3/2), 0, 0], [-(1/2), 0, 0], [(1/2), 0, 0], [(3/2), 0, 0]],
-    [[-1/2, -1/2, -1/2], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(1/2), -(1/2), -(1/2)], [-1, -1, -1]],
-    [[0, 0, 0], [1, -1, -2], [1, -1, -2], [1, -1, -2], [1, -1, -2]],
+    [[(-1/2), (-1/2), (-1/2)], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(1/2), -(1/2), -(1/2)], [-1, -1, -1]],
+    [[0, 0, 0], [1, (-1), (-2)], [1, (-1), (-2)], [1,( -1), (-2)], [1, (-1), (-2)]],
     [[0, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0]],
     [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]
-]
+    ]
     #valueAttribute=[[[0,0,0],[-(3/2),0,0],[-(1/2),0,0],[(1/2),0,0],[(3/2),0,0]]  ,  [[-1/2,-1/2,-1/2],[-(1/4),-(1/4),-(1/4)],[-(2/4),-(2/4),-(2/4)],[-(1/2),-(1/2),-(1/2)][-1,-1,-1]]    ,    [[0,0,0],[1,(-1),(-2)],[1,(-1),(-2)],[1,(-1),(-2)],[1,(-1),(-2)]]       ,     [[0,0,0],[-1,0,0],[-1,0,0],[-1,0,0],[-1,0,0]]      ,     [[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1],[-1,-1,-1]]     ]
     plusMinusNode=[]
 
     #Create Ctrl
     CtrlPose=cmds.circle(name=f'CTRL_Poses_Finger_{side}',nr=[1,0,0],radius=sz)[0]
+    smallUsefulFct.set_curve_color(CtrlPose,30)
     #Move
-    tr=cmds.xform(f"Bind_Hand_{side}",translation=True,worldSpace=True ,query=True,)
-    cmds.xform(CtrlPose, translation=[tr[0], tr[1]+10, tr[2]], worldSpace=True)
-
+    tr=cmds.xform(f"Bind_Hand_{side}",translation=True,worldSpace=True ,query=True)
+    cmds.xform(CtrlPose,translation=tr,worldSpace=True )
     #Put some attribute
     createAttributHand(CtrlPose)
     #Create the attributes 
@@ -235,18 +241,36 @@ def CtrlPoses(size):
     #Link Ctrl to plus minus average
     for f in Fingers:
         # Create the plusMinusAverage node
-
         tempnode=cmds.createNode('plusMinusAverage', name=f'pma_{f}_{side}')
         plusMinusNode.append(tempnode)
         # Set the operation --> 1 = sum
         cmds.setAttr(f'{tempnode}.operation', 1)
-    
+
     ##Connect nodes
     for iAtt in range(0,len(Att)):
         for iFing in range(0,len(Fingers)):
             for j in range(0,3):
-                attrCalcul=cmds.getAttr(f'{CtrlPose}.{Att[iAtt]}')*valueAttribute[iAtt][iFing][j]
-                cmds.setAttr(plusMinusNode[iFing],f"={CtrlPose}.{Att[iAtt]}*{valueAttribute[iAtt][iFing][j]}")
+                if valueAttribute[iAtt][iFing][j] !=0:
+                    if Att[iAtt]== "Spread":
+                        connections = cmds.listConnections(f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateY' , source=True, destination=True)
+                        if not connections:
+                            cmds.expression(s=f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateY = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}')                    
+                    else:
+                        cmds.expression(s=f"{plusMinusNode[iFing]}.input3D[{iAtt}].input3D{axe[j]} = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}")
+                        connections = cmds.listConnections(f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateZ', source=True, destination=True)
+                        if not connections:
+                            #cmds.expression(s=f"{plusMinusNode[iFing]}.input3D[{iAtt}].input3D{axe[j]} = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}")
+                            cmds.connectAttr(f'{plusMinusNode[iFing]}.output3D.output3D{axe[j]}',f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateZ')
+
+    for ifing in range(0,len(Fingers)):
+        for j in range(0,3):
+            nbr=iAtt+ifing+1
+            cmds.expression(s=f"{plusMinusNode[ifing]}.input3D[{nbr}].input3D{axe[j]} = {CtrlPose}.{AttCurl[ifing]} * (-1)")
+
+    cmds.parent(CtrlPose,f'CTRL')
+    smallUsefulFct.move2(CtrlPose)
+    cmds.parentConstraint
+    cmds.parentConstraint(f'Bind_Hand_{side}',f'{CtrlPose}_Move', maintainOffset=True, weight=1)
 
 
 
