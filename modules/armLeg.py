@@ -243,7 +243,9 @@ def createIkFk(sz):
     if objName == "Arm" :
         cmds.parent(f'{Ctrl_Hand}_Offset',grp_Ctrl_Spine)
     cmds.parent(f'{Pv_Ik_Arm}_Offset',grp_Ctrl_Spine)
-    cmds.parent(f'{Ctrl_SwitchIkFk}',grp_Ctrl_Spine)
+    ofCtrl=smallUsefulFct.offset2(Ctrl_SwitchIkFk)
+    cmds.parent(f'{ofCtrl}',grp_Ctrl_Spine)
+    cmds.parentConstraint(Ik_jnt_Names[0] ,ofCtrl,maintainOffset=True, weight=1)
     cmds.parent(grp_Ctrl_Spine,grp_Ctrl)
 
 

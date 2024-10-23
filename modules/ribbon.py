@@ -147,7 +147,13 @@ def AttachRib(attach):
                 cmds.connectAttr(f'{decompose_node}.outputQuat{a}',f'{quat_to_euler_node}.inputQuat{a}')
                 if a=='X':
                     if isA:
-                        cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{ARib}.rotateX')
+                        #if obj =="Shoulder":
+                            multDivideNonRollSh = cmds.createNode('multiplyDivide', name=f'mymultDivide_Nonroll_{obj}_{side}')
+                            cmds.setAttr(f'{multDivideNonRollSh}.input2X',-1)
+                            cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{multDivideNonRollSh}.input1X')
+                            cmds.connectAttr(f'{multDivideNonRollSh}.outputX',f'{ARib}.rotateX')
+                        #else:
+                        #    cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{ARib}.rotateX')
                     else:
                         cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{BRib}.rotateX')
 

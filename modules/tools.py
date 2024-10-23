@@ -86,30 +86,37 @@ def matchIkFk(value,txt_n):
         
 
 
-def lockUnlock(cb_loc_Translate,cb_loc_tx,cb_loc_ty,cb_loc_tz,cb_loc_Rotate,cb_loc_rx,cb_loc_ry,cb_loc_rz):
+def lockUnlock(cbMove,cbaxes,cbhide):
     # Assuming 'pCube1' is the name of your object
+    cb_loc_Move=[]
+    cb_loc_Axes=[]
+    move=['translate','rotate','scale']
     selected =cmds.ls(selection=True)
+    cbhide=cmds.checkBox(cbhide, query=True, value=True)
+    for cb in cbMove:
+        cb_loc_Move.append(cmds.checkBox(cb, query=True, value=True))
 
-    cb_loc_Translate=cmds.checkBox(cb_loc_Translate, query=True, value=True)
-    cb_loc_tx       =cmds.checkBox(cb_loc_tx, query=True, value=True)  
-    cb_loc_ty=cmds.checkBox(cb_loc_ty, query=True, value=True)
-    cb_loc_tz=cmds.checkBox(cb_loc_tz, query=True, value=True)
-    cb_loc_Rotate=cmds.checkBox(cb_loc_Rotate, query=True, value=True)
-    cb_loc_rx=cmds.checkBox(cb_loc_rx, query=True, value=True)
-    cb_loc_ry=cmds.checkBox(cb_loc_ry, query=True, value=True)
-    cb_loc_rz=cmds.checkBox(cb_loc_rz, query=True, value=True)
+    for cb2 in cbaxes:
+        cb_loc_Axes.append(cmds.checkBox(cb2, query=True, value=True))
+
 
     # Lock the translation attributes (X, Y, Z)
     for obj in selected:
-        if cb_loc_Translate:
-            
-            cmds.setAttr(obj + ".translateX", lock=cb_loc_tx)
-            cmds.setAttr(obj + ".translateY", lock=cb_loc_ty)
-            cmds.setAttr(obj + ".translateZ", lock=cb_loc_tz)
-        if cb_loc_Rotate :
-            cmds.setAttr(obj + ".rotateX", lock=cb_loc_rx)
-            cmds.setAttr(obj + ".rotateY", lock=cb_loc_ry)
-            cmds.setAttr(obj + ".rotateZ", lock=cb_loc_rz)
+        for ilock in range(0,len(cb_loc_Move)):
+            if cb_loc_Move[ilock]:
+                j=ilock*3
+                cmds.setAttr(f'{obj}.{move[ilock]}X', lock=cb_loc_Axes[j])
+                cmds.setAttr(f'{obj}.{move[ilock]}Y', lock=cb_loc_Axes[j+1])
+                cmds.setAttr(f'{obj}.{move[ilock]}Z', lock=cb_loc_Axes[j+2])
+
+                if cbhide:
+                    cmds.setAttr(f'{obj}.{move[ilock]}X', keyable=False, channelBox=False)
+                    cmds.setAttr(f'{obj}.{move[ilock]}Y', keyable=False, channelBox=False)
+                    cmds.setAttr(f'{obj}.{move[ilock]}Z', keyable=False, channelBox=False)
+                else:
+                    cmds.setAttr(f'{obj}.{move[ilock]}X', keyable=True, channelBox=True)
+                    cmds.setAttr(f'{obj}.{move[ilock]}Y', keyable=True, channelBox=True)
+                    cmds.setAttr(f'{obj}.{move[ilock]}Z', keyable=True, channelBox=True)
 
 
 def parentshape():

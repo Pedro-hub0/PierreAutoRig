@@ -14,7 +14,7 @@ def CreatelocHeadStructure(cb_org):
     cb_org=cmds.checkBox(cb_org, query=True, value=True)
     for loc in locator_names:
         cmds.spaceLocator(name=loc)[0]
-
+    
     if cb_org:
         #Organisation
         #In Eye Joint
@@ -98,10 +98,19 @@ def HeadStructure():
     offset_EyelidUp=smallUsefulFct.hook2(jnt_eyelid_Up_R[0])
     offset_EyelidUp=smallUsefulFct.hook2(jnt_eyelid_dwn_R[0])
 
-    if cmds.objExists('JNT'):
-        cmds.parent(offset_jnt_hdpiv01,'JNT')
-        cmds.parent(f'Bind_neck_end','JNT')
+    lastSpineJnt=lastSpine()
+    cmds.parent(offset_jnt_hdpiv01,lastSpineJnt)
+    cmds.parent(f'Bind_neck_end',lastSpineJnt)
 
+def lastSpine():
+
+        SpineChain = cmds.listRelatives('Bind_Root', allDescendents=True, type='joint') or []
+        LastSpine='Bind_Spine_01'
+        for n in SpineChain:
+            if 'Spine' in n:
+                LastSpine=n
+                break
+        return LastSpine
 def CtrlHeadStructure(sz):
 
     ##Initialisation
@@ -154,7 +163,16 @@ def CtrlHeadStructure(sz):
     cmds.parent(CTRL_names_Eyes[2],ctrl_Eyes)
     cmds.parent(CTRL_names_Eyes[5],ctrl_Eyes)
 
-    
+    # Jaw
+    trJawend=cmds.xform('Bind_Jaw_Down_End', query=True, translation=True, worldSpace=True)
+    trJaw=cmds.xform('Bind_Jaw_Down_01', query=True, translation=True, worldSpace=True)
+    JwDwnCtrl=cmds.circle(name='CTRL_Jaw_Down',radius=size/2,nr=[0,0,0])[0]
+    cmds.xform(JwDwnCtrl,translation=trJawend, worldSpace=True)
+    cmds.xform(JwDwnCtrl, pivots=trJaw, worldSpace=True)
+    offJwDwnCtrl=smallUsefulFct.move2(JwDwnCtrl)
+    cmds.parent(offJwDwnCtrl,'Master_Head_01')
+    cmds.orientConstraint(JwDwnCtrl,'Bind_Jaw_Down_01', maintainOffset=True, weight=1)
+
     ##Offset / Erase Transform
     for eye in CTRL_names_Eyes: 
         smallUsefulFct.hook2(eye)
