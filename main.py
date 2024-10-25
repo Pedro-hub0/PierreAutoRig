@@ -176,7 +176,22 @@ def create_window():
     cmds.button(label='Create Ctrl Global', command=lambda x:globalscale.CreateGlobal(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.separator(h=4)
+    cmds.separator(h=8)
 
+    cmds.frameLayout(label='Neck', collapsable=True, collapse=True)
+    cmds.separator(h=8)
+    cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(),width=100)
+
+    cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
+    cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
+    neckIk = cmds.intField(value=6,width=75)
+    cmds.text(label="Fk", font = "boldLabelFont" , w = 75, align = "center")
+    neckFk = cmds.intField(value=3,width=75)
+    cmds.setParent('..')
+    cmds.button(label='Neck Fk', command=lambda x:head.createNeckAlt(neckFk,sizeCtrlArm),width=100)
+    cmds.button(label='Neck Ik/Fk', command=lambda x:head.createNeck(neckIk,neckFk,sizeCtrlArm),width=100)
+    cmds.setParent('..')
+    
     cmds.frameLayout(label='Head', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
@@ -189,7 +204,12 @@ def create_window():
     cmds.setParent('..')
     cmds.setParent('..')
     
+
     cmds.separator(h=8)
+
+
+
+
     cmds.setParent('..')
 
 

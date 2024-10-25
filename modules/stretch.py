@@ -85,6 +85,11 @@ def Stretchfct():
     cmds.setAttr(f'{cond_Stretch}.colorIfTrueB', 1)
 
     GlobalMult=cmds.createNode('multiplyDivide', name=f'Global_Relative_Scale_{objName}_Mult_{side}')
+    cond_Squash=cmds.createNode('condition', name=f'Cond_Squash_{objName}_{side}')
+    cmds.setAttr(f'{cond_Squash}.operation', 0)
+    cmds.setAttr(f'{cond_Squash}.secondTerm', 1)
+    cmds.setAttr(f'{cond_Squash}.colorIfTrueR', 0)
+
 
     # Connect the nodes
     if not side == "Root" :
@@ -104,7 +109,8 @@ def Stretchfct():
     cmds.connectAttr(f'{cond_EvDist}.outColor', f'{cond_Stretch}.colorIfFalse')
 
     cmds.connectAttr(f'{GlobalMult}.outputX', f'{mD_LegPourcDiv}.input2X')
-    cmds.connectAttr(f'{GlobalMult}.outputX', f'{cond_EvDist}.secondTerm')
+    cmds.connectAttr(f'{GlobalMult}.outputX', f'{cond_Squash}.colorIfFalseR')
+    cmds.connectAttr(f'{cond_Squash}.outColorR',f'{cond_EvDist}.secondTerm')
     cmds.connectAttr('GlobalMove.scale', f'{GlobalMult}.input1')
 
     if not side == "Root" :
@@ -129,11 +135,25 @@ def Stretchfct():
         ##SI STRETCH N EXISTE PAS --> Le CREER
         if not cmds.objExists(f'CTRL_{name3}_{side}.Stretch_{objName}'):
             cmds.addAttr(f'CTRL_{name3}_{side}', longName=f'Stretch_{objName}', attributeType='bool', defaultValue=0,keyable=True)
+        
+        if not cmds.objExists(f'CTRL_{name3}_{side}.Squash_{objName}'):
+            cmds.addAttr(f'CTRL_{name3}_{side}', longName=f'Squash_{objName}', attributeType='bool', defaultValue=0,keyable=True)
+             
+        
         cmds.connectAttr(f'CTRL_{name3}_{side}.Stretch_{objName}', f'{cond_Stretch}.firstTerm')
+        cmds.connectAttr(f'CTRL_{name3}_{side}.Squash_{objName}',f'{cond_Squash}.firstTerm')
     else:
         if not cmds.objExists(f'CTRL_Root.Stretch_Spine'): 
             cmds.addAttr(f'CTRL_Root', longName=f'Stretch_Spine', attributeType='bool', defaultValue=0,keyable=True)
+        if not cmds.objExists(f'CTRL_Root.Squash_Spine'): 
+            cmds.addAttr(f'CTRL_Root', longName=f'Squash_Spine', attributeType='bool', defaultValue=0,keyable=True)
         cmds.connectAttr(f'CTRL_Root.Stretch_Spine', f'{cond_Stretch}.firstTerm')
+        cmds.connectAttr(f'CTRL_Root.Squash_Spine',f'{cond_Squash}.firstTerm')
+
+    #cmds.scriptJob(attributeChange=["CTRL_Root.Stretch_Spine", lock_translation_attributes])
+   
+    
+
 
     ##Tout CONNECTER AUX JOINTS 
     blacklist=['Bind_Hip','Bind_Leg_R','Bind_Leg_L']
@@ -142,3 +162,13 @@ def Stretchfct():
             cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleX')
             cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleY')
             cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleZ')
+
+def lock_translation_attributes():
+    if cmds.getAttr("CTRL_Root.Stretch_Spine") == 0:
+        cmds.setAttr("CTRL_Torso.translateX", lock=True)
+        cmds.setAttr("CTRL_Torso.translateY", lock=True)
+        cmds.setAttr("CTRL_Torso.translateZ", lock=True)
+    else:
+        cmds.setAttr("CTRL_Torso.translateX", lock=False)
+        cmds.setAttr("CTRL_Torso.translateY", lock=False)
+        cmds.setAttr("CTRL_Torso.translateZ", lock=False)

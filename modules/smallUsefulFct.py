@@ -3,6 +3,7 @@ import math
 import os
 import sys
 
+
 ###################################
 ###   SMALL USEFUL FUNCTIONS   ####
 ###################################        
