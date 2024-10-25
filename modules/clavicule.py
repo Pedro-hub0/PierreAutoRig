@@ -107,7 +107,10 @@ def createClavicule():
 
 
 def mirorClav(cb_jnt_clav):
-    cb_jnt_val = cmds.checkBox(cb_jnt_clav, query=True, value=True)
+    cb_jnt_val=True
+    if cb_jnt_clav!=True:
+        cb_jnt_val = cmds.checkBox(cb_jnt_clav, query=True, value=True)
+
     selObj = cmds.ls(selection=True)
     side=selObj[0][-1]
     otherside = "R" if side == "L" else "L"
@@ -157,7 +160,6 @@ def mirorClav(cb_jnt_clav):
     cmds.delete(temp_grp01)
     cmds.delete(temp_grp02[0].split("|")[-1])
     #Use the last codes
-    print(f'  eerer  {cb_jnt_val}')
     if cb_jnt_val:
         cmds.select(f"CTRL_IkFk_Arm_{otherside}")
         createClavicule()

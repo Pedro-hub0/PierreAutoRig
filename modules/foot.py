@@ -43,7 +43,7 @@ def OrganiseLocs(sz):
     jnts=[]
     FkCtrl=[]
     count=0
-    size=cmds.intField(sz, query=True, value=True)
+    size=smallUsefulFct.GetDistLocScale(sz)
 
     #Create Joints IKs Foot
     tr_Ankle = cmds.xform(f'DrvJnt_Ankle_{side}', query=True, translation=True, worldSpace=True)
@@ -391,10 +391,12 @@ def MyPbFct(ob,side,Ctrl,ik,fk):
 
 
 def mirorFoot(cb_jnt,cb_ctrl,sizeCtrlArm):
-
+    cb_ctrl_val =True
+    cb_jnt_val = True
     #Initialisation
-    cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
-    cb_jnt_val = cmds.checkBox(cb_jnt, query=True, value=True)
+    if cb_jnt!=True:
+        cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
+        cb_jnt_val = cmds.checkBox(cb_jnt, query=True, value=True)
     locs_Sort=[]
     selObj = cmds.ls(selection=True)
     newName=[]
@@ -474,7 +476,7 @@ def mirorFoot(cb_jnt,cb_ctrl,sizeCtrlArm):
     ctrlName=f'CTRL_Foot_{otherside}'
     if not cmds.objExists(ctrlName):
         cmds.circle(name=ctrlName)[0]
-    createAttributFoot(ctrlName,otherside)
+    #createAttributFoot(ctrlName,otherside)
 
     
     #Use the last codes

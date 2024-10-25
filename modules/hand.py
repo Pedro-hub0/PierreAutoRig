@@ -8,13 +8,17 @@ importlib.reload(smallUsefulFct)
 ####################
 ###     HAND   ####
 ####################
-def locHand():
+def locHand(sz):
     selObj = cmds.ls(selection=True)
+    size=smallUsefulFct.GetDistLocScale(sz)/2
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")
     side=selObj[0][-1]
     Fingers=["thumb","index","middle","ring","pinky"]
-    posHand= cmds.xform(f'Bind_Hand_{side}', query=True, translation=True, worldSpace=True)
+    posHand= (0,0,0)
+    if cmds.objExists(f'Bind_Hand_{side}'):
+        posHand= cmds.xform(f'Bind_Hand_{side}', query=True, translation=True, worldSpace=True)
+    
     locHand=cmds.spaceLocator(n=f'Loc_Hand_{side}')
     cmds.xform(locHand, translation=posHand, worldSpace=True)  
     y=0
@@ -26,7 +30,7 @@ def locHand():
                 cmds.parent(loc,locHand)
             else:
                 cmds.parent(loc,f'{f}_0{i-1}_{side}')   
-            moveNumber=(i,0,y)
+            moveNumber=(i*size/1,0,-y*size)
             smallUsefulFct.move_object(loc,moveNumber,False)
         y+=1
 
@@ -158,8 +162,9 @@ def ctrlHand(sz):
         ctrlHand(sz)"""
 
 def mirorHand2(cb_ctrl,sz):
-
-    cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
+    cb_ctrl_val=True
+    if cb_ctrl!= True:
+        cb_ctrl_val = cmds.checkBox(cb_ctrl, query=True, value=True)
     selObj = cmds.ls(selection=True)
     side=selObj[0][-1]
     otherside = "R" if side == "L" else "L"
@@ -203,6 +208,8 @@ def mirorHand2(cb_ctrl,sz):
     if cb_ctrl_val:
         cmds.select(f"CTRL_IkFk_Arm_{otherside}")
         ctrlHand(sz)
+        cmds.select(f"CTRL_IkFk_Arm_{otherside}")
+        CtrlPoses(sz)
 
 
 
@@ -212,7 +219,7 @@ def CtrlPoses(size):
     side=selObj[0][-1]
     if side not in ["L","R"]: 
         raise ValueError("You need to select something which finish by L or R ")
-    sz=cmds.intField(size, query=True, value=True)
+    sz=smallUsefulFct.GetDistLocScale(size)
     Att=["Spread","Relax","Scrunch","Bend","Curl"]
     Fingers=["thumb","index","middle","ring","pinky"]
     AttCurl=['CurlThumb', 'CurlIndex','CurlMiddle','CurlRing','CurlPinky']

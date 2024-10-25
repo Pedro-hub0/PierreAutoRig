@@ -145,3 +145,22 @@ def selectJnt(name):
 
     # Select the found joints
     cmds.select(joints, r=True)
+
+def LocScale():
+    if not cmds.objExists("Loc_Echelle_01"):
+        cmds.spaceLocator(name="Loc_Echelle_01")[0]
+    if not cmds.objExists("Loc_Echelle_02"):
+        cmds.spaceLocator(name="Loc_Echelle_02")[0]
+
+
+def toggleRotateVisibilityFct(onOff):
+    # Get a list of all joints in the scene
+    all_joints = cmds.ls(type='joint')
+
+    # Iterate through each joint
+    for joint in all_joints:
+        # Check if ToggleLocalRotationAxes is true for the current joint
+        toggle_rotation_axes = cmds.getAttr(joint + ".displayLocalAxis")
+        if cmds.objExists(joint):
+            cmds.setAttr(joint + ".displayLocalAxis", onOff)
+

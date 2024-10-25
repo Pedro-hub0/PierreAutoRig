@@ -33,7 +33,7 @@ def create_hips():
     
 def create_hips_Ctrl(size):
     if cmds.objExists('Bind_Hip'):
-        size=cmds.intField(size, query=True, value=True)
+        size=smallUsefulFct.GetDistLocScale(size)
         ##Create Controller 
         Ctrl_hip=cmds.circle(name=f'CTRL_Hips',radius=size,nr=[0,1,0])[0]
         target_translation = cmds.xform('Bind_Root', query=True, worldSpace=True, translation=True)

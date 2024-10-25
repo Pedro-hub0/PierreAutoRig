@@ -11,8 +11,10 @@ joints_names = ["Bind_Eyelid_Dwn_End_L","Bind_Eyelid_Up_End_L","Bind_Eye_L","Bin
 
 
 def CreatelocHeadStructure(cb_org):
-    cb_org=cmds.checkBox(cb_org, query=True, value=True)
-    tr_Neck=cmds.xform('Bind_Neck_end', q=True, t=True, ws=True)
+    tr_Neck=(0,0,0)
+    if cb_org!=True:
+        cb_org=cmds.checkBox(cb_org, query=True, value=True)
+        tr_Neck=cmds.xform('Bind_Neck_end', q=True, t=True, ws=True)
 
     for loc in locator_names:
         cmds.spaceLocator(name=loc)[0]
@@ -108,7 +110,7 @@ def HeadStructure():
 
     lastNeckJnt=lastNeck()
     cmds.parentConstraint(f'{lastNeckJnt}',offset_jnt_hdpiv01, maintainOffset=True, weight=1)
-
+    cmds.parent(offset_jnt_hdpiv01,'JNT')
 def lastSpine():
 
         SpineChain = cmds.listRelatives('Bind_Root', allDescendents=True, type='joint') or []
@@ -140,7 +142,7 @@ def CtrlHeadStructure(sz):
 
     tr_Head01=cmds.xform('Bind_Head_Pivot_01', query=True, translation=True, worldSpace=True)
     tr_Head02=cmds.xform('Bind_Head_Pivot_02', query=True, translation=True, worldSpace=True)
-    size=cmds.intField(sz, query=True, value=True)
+    size=smallUsefulFct.GetDistLocScale(sz)
     
     ##Creation
     for obj in CTRLS_hierarchy:
@@ -248,8 +250,8 @@ def LocNeck():
 
 ## NECK Fk
 def createNeckAlt(neckIk,sz) :
-    nbIkJnt=cmds.intField(neckIk, query=True, value=True)
-    sz=cmds.intField(sz, query=True, value=True)
+    nbIkJnt=cmds.intField(neckIk, query=True, value=True)+1
+    sz=smallUsefulFct.GetDistLocScale(sz)
     LocName=['Loc_Neck_Base','Loc_Neck_End']
     IkJnts=[]
     Ctrl_Fk_Neck=[]
@@ -309,7 +311,7 @@ def createNeckAlt(neckIk,sz) :
 def createNeck(neckIk,neckFk,sz):
     nbIkJnt=cmds.intField(neckIk, query=True, value=True)
     nbFkJnt=cmds.intField(neckFk, query=True, value=True)
-    sz=cmds.intField(sz, query=True, value=True)
+    sz=smallUsefulFct.GetDistLocScale()
     LocName=['Loc_Neck_Base','Loc_Neck_End']
     JntName=['Jnt_Neck_Root','Jnt_Neck_End']
     IkJnts=[]
@@ -478,30 +480,30 @@ def Stretchfct():
 
 
 
-        if cmds.objExists('Locs'):
-            grp_Locs='Locs'
-        else:
-            grp_Locs = cmds.group(empty=True, name="Locs")
+    if cmds.objExists('Locs'):
+        grp_Locs='Locs'
+    else:
+        grp_Locs = cmds.group(empty=True, name="Locs")
 
-        cmds.parent(grp_Locs,'GlobalMove')
-        name3="Foot"
-        if objName =="Arm":
-            name3="Hand"
-        name1=f"Loc_Dist_{objName}_{side}"
-        name2=f"Loc_Dist_{name3}_{side}"
+    cmds.parent(grp_Locs,'GlobalMove')
+    name3="Foot"
+    if objName =="Arm":
+        name3="Hand"
+    name1=f"Loc_Dist_{objName}_{side}"
+    name2=f"Loc_Dist_{name3}_{side}"
 
-        if objName =="Arm":
-            name3="Hand"
-        loc1=cmds.spaceLocator(name=name1)[0]
-        loc2=cmds.spaceLocator(name=name2)[0]
+    if objName =="Arm":
+        name3="Hand"
+    loc1=cmds.spaceLocator(name=name1)[0]
+    loc2=cmds.spaceLocator(name=name2)[0]
 
-        ## Mettre les Locs dans un dossier
-        cmds.parent(loc1,grp_Locs)
-        cmds.parent(loc2,grp_Locs)
+    ## Mettre les Locs dans un dossier
+    cmds.parent(loc1,grp_Locs)
+    cmds.parent(loc2,grp_Locs)
 
 
-        cmds.matchTransform(name1,Ik_jnt_Names[0], pos=True, rot=False, scale=False)
-        cmds.matchTransform(name2,Ik_jnt_Names[2], pos=True, rot=False, scale=False)
+    cmds.matchTransform(name1,Ik_jnt_Names[0], pos=True, rot=False, scale=False)
+    cmds.matchTransform(name2,Ik_jnt_Names[2], pos=True, rot=False, scale=False)
 
 
     # Create a distanceBetween node

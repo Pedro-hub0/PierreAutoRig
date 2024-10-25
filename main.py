@@ -49,12 +49,42 @@ def create_window():
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cmds.text(label="CTRL Size", font = "boldLabelFont" , w = 150, align = "center")
-    sizeCtrlArm = cmds.intField(value=2,width=150,ann="Size")
+    sizeCtrlArm = cmds.intField(value=1,width=150,ann="Size")
     cmds.setParent('..')
+
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cmds.button(label='Create Locs Scale', command=lambda x:tools.LocScale(),width=150)
+    cmds.button(label='Get Scale', command=lambda x:smallUsefulFct.GetDistLocScale(sizeCtrlArm),width=150)
+    cmds.setParent('..')
+
     cmds.separator(h=8)
     cmds.button(label='Squash And Stretch', command=lambda x:stretch.Stretchfct(),width=120)
     cmds.separator(h=8)
     # Crée une frame layout (volet repliable)
+    cmds.frameLayout(label='FULL AUTO', collapsable=True, collapse=True)
+    cmds.separator(h=3)
+    cmds.text(label="Place Locs and Joints", font = "boldLabelFont" , w = 50, align = "left")
+    cmds.rowLayout(numberOfColumns=5, columnWidth5=[50,25,50,25,50])
+    cmds.text(label="Spine", font = "boldLabelFont" , w = 50, align = "left")
+    cmds.text(label="Ik", font = "boldLabelFont" , w = 50, align = "left")
+    fullspineIk = cmds.intField(value=6,width=75)
+    cmds.text(label="Fk", font = "boldLabelFont" , w = 50, align = "left")
+    fullspineFk = cmds.intField(value=3,width=75)
+    cmds.setParent('..')
+
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[50,25,75])
+    cmds.text(label="Neck", font = "boldLabelFont" , w = 50, align = "left")
+    cmds.text(label="Fk", font = "boldLabelFont" , w = 50, align = "left")
+    fullneckFk = cmds.intField(value=1,width=75)
+    cmds.setParent('..')
+
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cmds.button(label='Create Locs', command=lambda x:createLocsFulllAuto(sizeCtrlArm),width=100)
+    cmds.button(label='Create Skeleton', command=lambda x:createSkeleton(sizeCtrlArm,fullspineIk,fullspineFk,fullneckFk),width=100)
+    cmds.setParent('..') 
+    cmds.setParent('..')
+    cmds.separator(h=8)
+
     cmds.frameLayout(label='Spine', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
@@ -73,6 +103,7 @@ def create_window():
     cmds.separator(h=3)
     cmds.text(label="Create 3 Joint for your Arm / Leg", font = "boldLabelFont" , w = 50, align = "left")
     cmds.text(label="Select Joint Parent : Name Arm/Leg_L/R", font = "boldLabelFont" , w = 50, align = "left")
+    cmds.button(label='Create Joints', command=lambda x:armLeg.createJnts(sizeCtrlArm),width=100)
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
     cmds.button(label='Freeze And Orient', command=lambda x:armLeg.createLegArmLocs(),width=100)
     cmds.button(label='Ik_Fk_Arm/Leg', command=lambda x:armLeg.createIkFk(sizeCtrlArm),width=100)
@@ -115,7 +146,7 @@ def create_window():
     cmds.frameLayout(label='Hand', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
-    cmds.button(label='Create Locators', command=lambda x:hand.locHand(),width=100)
+    cmds.button(label='Create Locators', command=lambda x:hand.locHand(sizeCtrlArm),width=100)
     cmds.button(label='Create Hand', command=lambda x:hand.createHand(),width=100)
     cmds.button(label='Create Controllers', command=lambda x: hand.ctrlHand(sizeCtrlArm),width=100)
     cmds.setParent('..')
@@ -247,7 +278,10 @@ def create_window():
     cmds.setParent('..')
     cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
     cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("Bind"),width=300)
-
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150, 150])
+    cmds.button(label=' LRA On ', command=lambda x:tools.toggleRotateVisibilityFct(True),width=150)
+    cmds.button(label=' LRA Off ', command=lambda x:tools.toggleRotateVisibilityFct(False),width=150)
+    cmds.setParent('..')
     cmds.text(label=" Match Ik/Fk ", font = "boldLabelFont" , w = 300, align = "left")
     cmds.separator(h=5)
     # Create a text field
@@ -258,3 +292,88 @@ def create_window():
     cmds.button(label='Ik/Fk', command=lambda x:tools.matchIkFk(1,txt_mamespace),width=75)
     # Show the window
     cmds.showWindow(window_name)
+
+
+def createLocsFulllAuto(sz):
+    spine.creatLocsSpine()
+    armLeg.createJnts(sz)
+    cmds.select("Arm_L")
+    clavicule.locClavicule()
+    cmds.select("Arm_L")
+    hand.locHand(sz)
+    cmds.select("Leg_L")
+    foot.createLocs()
+    head.CreatelocHeadStructure(True)
+    head.LocNeck()
+
+def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
+    #Spine
+    spine.createSpine(cbIkSpine,cbFkSpine,sz)
+
+    #Arm 
+    cmds.select("Arm_L")
+    armLeg.createIkFk(sz)
+    cmds.select("CTRL_IkFk_Arm_L")
+    armLeg.mirror(sz)
+
+    #Leg
+    cmds.select("Leg_L")
+    armLeg.createIkFk(sz)
+    cmds.select("CTRL_IkFk_Leg_L")
+    armLeg.mirror(sz)
+
+    #Stretch and Squash
+    cmds.select("CTRL_IkFk_Leg_L")
+    stretch.Stretchfct()
+    cmds.select("CTRL_IkFk_Leg_R")
+    stretch.Stretchfct()
+    cmds.select("CTRL_IkFk_Arm_R")
+    stretch.Stretchfct()
+    cmds.select("CTRL_IkFk_Arm_L")
+    stretch.Stretchfct()    
+    cmds.select("CTRL_Root")
+    stretch.Stretchfct()   
+    
+    #Clav
+    cmds.select("CTRL_IkFk_Arm_L")
+    clavicule.createClavicule()
+    cmds.select("CTRL_IkFk_Arm_L")
+    clavicule.mirorClav(True)
+    cmds.select("CTRL_IkFk_Arm_L")
+
+    #Hips
+    cmds.select(clear=True)
+    hips.create_hips()
+    cmds.select(clear=True)
+    hips.create_hips_Ctrl(sz)
+
+    #Hand
+    cmds.select("CTRL_IkFk_Arm_L")
+    hand.createHand()
+    cmds.select("CTRL_IkFk_Arm_L")
+    hand.ctrlHand(sz)
+    cmds.select("CTRL_IkFk_Arm_L")
+    hand.CtrlPoses(sz)
+    cmds.select("CTRL_IkFk_Arm_L")
+    hand.mirorHand2(True,sz)
+    
+    #Foot 
+    cmds.select("CTRL_IkFk_Leg_L")
+    foot.OrganiseLocs(sz)
+    cmds.select("CTRL_IkFk_Leg_L")
+    foot.ConnectFoot()
+    cmds.select("CTRL_IkFk_Leg_L")
+    foot.mirorFoot(True,True,sz)
+
+    #Neck 
+    cmds.select(clear=True)
+    head.createNeckAlt(cbFkNeck,sz)
+
+    #Head 
+    cmds.select(clear=True)
+    head.HeadStructure()
+    head.CtrlHeadStructure(sz)
+
+    #General 
+    cmds.select(clear=True)
+    globalscale.CreateGlobal(sz)

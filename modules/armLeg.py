@@ -7,11 +7,31 @@ script_dir = os.path.dirname(__file__)
 # Add that folder to sys.path
 sys.path.append(script_dir)
 import smallUsefulFct
+import foot
 import math
-
+import importlib
+importlib.reload(smallUsefulFct)
+importlib.reload(foot)
 ###################################
 ###         CREATE IK FK       ####
 ###################################
+def createJnts(sz):
+    cmds.select(clear=True)
+    jntLeg=[]
+    jntArm=[]
+    size=smallUsefulFct.GetDistLocScale(sz)*3
+    for i in range(0,3): 
+        moveNumber=(i*size,0,0)
+        moveNumber2=(0,(-i)*size,0)
+        jntArm.append(cmds.joint(n=f'Arm_L',p=moveNumber))
+        cmds.select(clear=True)
+        jntLeg.append(cmds.joint(n=f'Leg_L',p=moveNumber2))
+        cmds.select(clear=True)
+
+    for i in range(2,0,-1): 
+        cmds.parent(jntArm[i],jntArm[i-1])
+        cmds.parent(jntLeg[i],jntLeg[i-1])
+        cmds.select(clear=True)
 
 def createLegArmLocs():
 #joint -e  -oj xyz -secondaryAxisOrient xup -ch -zso;
@@ -34,7 +54,7 @@ def createIkFk(sz):
     objName=selObj[0][:-2]
     FkCtrl=[]
     ConstrBindHand=[]
-    size=cmds.intField(sz, query=True, value=True)
+    size=smallUsefulFct.GetDistLocScale(sz)
 
 
     # Find the index of the letter after which you want to grab the name
@@ -161,13 +181,15 @@ def createIkFk(sz):
         cmds.xform(Ctrl_Hand, t=TranslateJnt, ro=RotationJnt, ws=True)
         smallUsefulFct.move(Ctrl_Hand)
     if objName == "Leg" :
-        if not cmds.objExists(f'CTRL_Foot_{side}'):
-            Ctrl_Hand=cmds.circle(name=f'CTRL_Foot_{side}',nr=[1,0,0],radius=size)[0]
-            smallUsefulFct.set_curve_color(Ctrl_Hand,16)
-            cmds.xform(Ctrl_Hand, t=TranslateJnt, ro=RotationJnt, ws=True)
-            smallUsefulFct.move(Ctrl_Hand)
-        else:
-            Ctrl_Hand=f'CTRL_Foot_{side}'
+        if cmds.objExists(f'CTRL_Foot_{side}'):
+            cmds.delete(f'CTRL_Foot_{side}')
+        Ctrl_Hand=cmds.circle(name=f'CTRL_Foot_{side}',nr=[1,0,0],radius=size)[0]
+        smallUsefulFct.set_curve_color(Ctrl_Hand,16)
+        cmds.xform(Ctrl_Hand, t=TranslateJnt, ro=RotationJnt, ws=True)
+        smallUsefulFct.move(Ctrl_Hand)
+        foot.createAttributFoot(Ctrl_Hand,side)
+        #else:
+        #    Ctrl_Hand=f'CTRL_Foot_{side}'
             
         BindHand="null"
 
@@ -178,17 +200,17 @@ def createIkFk(sz):
     Ctrl_SwitchIkFk = cmds.circle(name=f'CTRL_IkFk_{objName}_{side}',radius=size)[0]
     # Get the translation values of the source object
     TranslateFk = cmds.xform(IkChain[0], q=True, t=True, ws=True)
-    
+    ofCtrl=smallUsefulFct.offset2(Ctrl_SwitchIkFk)
     # Apply the translation values to the destination object
-    cmds.xform(Ctrl_SwitchIkFk, t=TranslateFk, ws=True)
+    cmds.xform(ofCtrl, t=TranslateFk, ws=True)
     
     # Move the destination object up and right
     if side == "L" :
-        ikFkSide=-3
+        ikFkSide=0.5*size
     if side == "R" :
-        ikFkSide=3
-    cmds.move(ikFkSide, 5, 0, Ctrl_SwitchIkFk, r=True, os=True)
-
+        ikFkSide=(-0.5)*size
+    cmds.move(ikFkSide,2*size, 0, ofCtrl, r=True, os=True)  
+    
     #Add An attribute 
     cmds.addAttr(Ctrl_SwitchIkFk, longName="Switch_Ik_Fk", attributeType="float", defaultValue=0, minValue=0.0, maxValue=1.0,keyable=True)
     smallUsefulFct.lock_and_hide_attributes(f'CTRL_IkFk_{objName}_{side}')
@@ -243,7 +265,6 @@ def createIkFk(sz):
     if objName == "Arm" :
         cmds.parent(f'{Ctrl_Hand}_Offset',grp_Ctrl_Spine)
     cmds.parent(f'{Pv_Ik_Arm}_Offset',grp_Ctrl_Spine)
-    ofCtrl=smallUsefulFct.offset2(Ctrl_SwitchIkFk)
     cmds.parent(f'{ofCtrl}',grp_Ctrl_Spine)
     cmds.parentConstraint(Ik_jnt_Names[0] ,ofCtrl,maintainOffset=True, weight=1)
     cmds.parent(grp_Ctrl_Spine,grp_Ctrl)

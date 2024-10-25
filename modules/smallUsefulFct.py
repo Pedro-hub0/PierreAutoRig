@@ -165,6 +165,13 @@ def organiser():
         cmds.parent(f'{grp_Global}',grp_Perso)
 
 
+def GetDistLocScale(sz):
+    size=cmds.intField(sz, query=True, value=True)
+    finalsize=size
+    if cmds.objExists("Loc_Echelle_01") and cmds.objExists("Loc_Echelle_01") :
+        print(f'DIST SCALE:  {getDistBetweenJnts("Loc_Echelle_01","Loc_Echelle_02")}     {size}\n')
+        finalsize= getDistBetweenJnts("Loc_Echelle_01","Loc_Echelle_02")*size
+    return finalsize
 
 
 ###### CHAT GPT #####

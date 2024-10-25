@@ -13,7 +13,7 @@ def creatLocsSpine():
 def createSpine(spineIk,spineFk,sz) :
     nbIkJnt=cmds.intField(spineIk, query=True, value=True)
     nbFkJnt=cmds.intField(spineFk, query=True, value=True)
-    sz=cmds.intField(sz, query=True, value=True)
+    sz=smallUsefulFct.GetDistLocScale(sz)
     LocName=['Loc_Root','Loc_Shoulder']
     JntName=['Jnt_Root','Jnt_Shoulder']
     IkJnts=[]
