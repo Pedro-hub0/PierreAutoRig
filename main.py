@@ -105,7 +105,7 @@ def create_window():
     cmds.text(label="Select Joint Parent : Name Arm/Leg_L/R", font = "boldLabelFont" , w = 50, align = "left")
     cmds.button(label='Create Joints', command=lambda x:armLeg.createJnts(sizeCtrlArm),width=100)
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
-    cmds.button(label='Freeze And Orient', command=lambda x:armLeg.createLegArmLocs(),width=100)
+    cmds.button(label='Freeze And Orient', command=lambda x:armLeg.FreezeOrient(),width=100)
     cmds.button(label='Ik_Fk_Arm/Leg', command=lambda x:armLeg.createIkFk(sizeCtrlArm),width=100)
     cmds.button(label='Mirror', command=lambda x:armLeg.mirror(sizeCtrlArm),width=100)
     cmds.setParent('..') 
@@ -312,11 +312,15 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
 
     #Arm 
     cmds.select("Arm_L")
+    armLeg.FreezeOrient()
+    cmds.select("Arm_L")
     armLeg.createIkFk(sz)
     cmds.select("CTRL_IkFk_Arm_L")
     armLeg.mirror(sz)
 
     #Leg
+    cmds.select("Leg_L")
+    armLeg.FreezeOrient()
     cmds.select("Leg_L")
     armLeg.createIkFk(sz)
     cmds.select("CTRL_IkFk_Leg_L")
