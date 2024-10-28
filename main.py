@@ -378,6 +378,13 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
     head.HeadStructure()
     head.CtrlHeadStructure(sz)
 
+    #Ribbon 
+    if smallUsefulFct.importFileFromScene('Ribbon_MatX'):
+        cb_attach=[True,True,True,True,True,True,True,True]
+        cmds.button(label='Attach', command=lambda x:ribbon.AttachRib(cb_attach),width=100)
+
+        
+
     #General 
     cmds.select(clear=True)
     globalscale.CreateGlobal(sz)

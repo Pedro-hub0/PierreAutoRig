@@ -22,10 +22,14 @@ def AttachRib(attach):
     side="none"
     cb_Rib=["Shoulder_L","Shoulder_R","Elbow_L","Elbow_R","Leg_L","Leg_R","Knee_L","Knee_R"]
     rib_check=[]
+
     for i in range(len(attach)):
-        is_checked = cmds.checkBox(attach[i], query=True, value=True)
+        if attach[0]!=True:
+            is_checked = cmds.checkBox(attach[i], query=True, value=True)
+        else:is_checked=True
         if is_checked:
             rib_check.append(cb_Rib[i])
+
     objextremity=''
     isA=True
     for r in rib_check:

@@ -280,7 +280,7 @@ def controller(n,tr,na,sz):
 def importFileFromScene(file): 
         # Get the directory of the current Maya scene
     scene_path = cmds.file(query=True, sceneName=True)
-
+    isRibbon=True
     if scene_path:
         # Get the directory of the current scene
         scene_dir = os.path.dirname(scene_path)
@@ -294,9 +294,10 @@ def importFileFromScene(file):
             print(f"Imported: {file_to_import}")
         else:
             print(f"File not found: {file_to_import}")
+            isRibbon=False
     else:
         print("No scene is currently open.")
-
+    return isRibbon
 
 def addSuffix(obj,suffix): 
     list_obj=[]
