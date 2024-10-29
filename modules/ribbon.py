@@ -193,9 +193,24 @@ def AttachRib(attach):
             
             if cmds.listRelatives(grp_Ribbon,parent=True) == None:                
                 cmds.parent(grp_Ribbon,grp_Extranode)
+                
+        ctrl_IkFk=f'CTRL_IkFk_{objSwitch}_{side}'
+        if not cmds.attributeQuery(f'__', node=ctrl_IkFk, exists=True):
+            cmds.addAttr(ctrl_IkFk, longName='__', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")
+        elif not cmds.attributeQuery(f'___', node=ctrl_IkFk, exists=True):
+            cmds.addAttr(ctrl_IkFk, longName='___', attributeType='enum', enumName='____', defaultValue=0,keyable=True,niceName="___")
+        if not cmds.attributeQuery(f'Sine_Amplitude_{obj}_{side}', node=ctrl_IkFk, exists=True):
+            cmds.addAttr(ctrl_IkFk, longName=f'Sine_Amplitude_{obj}_{side}',attributeType='float', defaultValue=0,keyable=True)
+            cmds.connectAttr(f'{ctrl_IkFk}.Sine_Amplitude_{obj}_{side}',f'{GlobalRib}.Sine_Amplitude')
+        
+        if not cmds.attributeQuery(f'Sine_Offset_{obj}_{side}', node=ctrl_IkFk, exists=True):
+            cmds.addAttr(ctrl_IkFk, longName=f'Sine_Offset_{obj}_{side}',attributeType='float', defaultValue=0,keyable=True)
+            cmds.connectAttr(f'{ctrl_IkFk}.Sine_Offset_{obj}_{side}',f'{GlobalRib}.Sine_Offset')
 
-
-
+        
+        if not cmds.attributeQuery(f'Sine_Wavelength_{obj}_{side}', node=ctrl_IkFk, exists=True):
+            cmds.addAttr(ctrl_IkFk, longName=f'Sine_Wavelength_{obj}_{side}',attributeType='float', defaultValue=2,keyable=True)
+            cmds.connectAttr(f'{ctrl_IkFk}.Sine_Wavelength_{obj}_{side}',f'{GlobalRib}.Sine_Wavelenght')
 
 
 
