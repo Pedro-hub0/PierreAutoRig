@@ -38,6 +38,8 @@ def createJnts(sz):
         cmds.parent(jntLeg[0],"Grp_temp_Jnt_Leg_Arm")
         cmds.parent(jntArm[0],"Grp_temp_Jnt_Leg_Arm")
 
+        
+
 def FreezeOrient():
 #joint -e  -oj xyz -secondaryAxisOrient xup -ch -zso;
     #Prendre Selections

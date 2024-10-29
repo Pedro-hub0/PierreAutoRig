@@ -27,6 +27,12 @@ def createLocs():
         cmds.circle(name=ctrlName)[0]
     
     createAttributFoot(ctrlName,side)
+    #Organiser
+    if not cmds.objExists(f"Grp_temp_Locs_Foot_{side}") :
+        cmds.group(empty=True, name=f"Grp_temp_Locs_Foot_{side}")
+        cmds.parent(locator_names,f"Grp_temp_Locs_Foot_{side}")
+        cmds.parent(folder_names,f"Grp_temp_Locs_Foot_{side}")
+
 
 
 def OrganiseLocs(sz):

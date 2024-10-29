@@ -381,7 +381,7 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
     #Ribbon 
     if smallUsefulFct.importFileFromScene('Ribbon_MatX'):
         cb_attach=[True,True,True,True,True,True,True,True]
-        cmds.button(label='Attach', command=lambda x:ribbon.AttachRib(cb_attach),width=100)
+        ribbon.AttachRib(cb_attach)
 
         
 

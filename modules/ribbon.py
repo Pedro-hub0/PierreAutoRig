@@ -24,7 +24,7 @@ def AttachRib(attach):
     rib_check=[]
 
     for i in range(len(attach)):
-        if attach[0]!=True:
+        if attach[i]!=True:
             is_checked = cmds.checkBox(attach[i], query=True, value=True)
         else:is_checked=True
         if is_checked:
@@ -54,9 +54,12 @@ def AttachRib(attach):
 
 
         ##IMPORTE RIBBON
-        createRibbon()
         if cmds.objExists(f'Ribbon_01_{obj}_{side}'):
             cmds.delete(f'Ribbon_01_{obj}_{side}')
+        if cmds.objExists(f'Ribbon_01'):
+            cmds.delete(f'Ribbon_01')
+
+        createRibbon()
         if cmds.objExists("Ribbon_01"):
             smallUsefulFct.addSuffix("Ribbon_01",f'_{obj}_{side}')
         else:        
