@@ -11,7 +11,7 @@ def CreateGlobal(sz):
     membres=['Shoulder','Elbow','Leg','Knee']
     lettres=['A','B','C','D','E']
     side={'L','R'}
-    size=smallUsefulFct.GetDistLocScale(sz)*3
+    size=smallUsefulFct.GetDistLocScale(sz)*4
     grplGeneral=cmds.listRelatives('GlobalMove',parent=True)[0]
 
     #Create Ctrl

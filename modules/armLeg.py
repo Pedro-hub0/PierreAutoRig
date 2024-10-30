@@ -140,10 +140,18 @@ def createIkFk(sz):
     cmds.parent(ik_handle_Arm,grp_Iks)
     #Pole vector
 
-    Pv_Ik_Arm= cmds.circle(name=f'Pv_{objName}_{side}',nr=[1,0,0])[0]
+    Pv_Ik_Arm= cmds.circle(name=f'Pv_{objName}_{side}',radius=size/2,nr=[1,0,0])[0]
     smallUsefulFct.set_curve_color(Pv_Ik_Arm,28)
     TranslateShoulder = cmds.xform(FkChain[1], q=True, t=True, ws=True)
-    cmds.xform(Pv_Ik_Arm, t=TranslateShoulder, ws=True)
+    move=1
+
+    if objName=="Arm":
+        move=-size*3
+
+    if objName=="Leg":
+        move=size*3
+    TranslateShoulderMove=(TranslateShoulder[0],TranslateShoulder[1],TranslateShoulder[2]+move)
+    cmds.xform(Pv_Ik_Arm, t=TranslateShoulderMove, ws=True)
     cmds.poleVectorConstraint(Pv_Ik_Arm, ik_handle_Arm)
     smallUsefulFct.offset(Pv_Ik_Arm)
 
@@ -183,7 +191,7 @@ def createIkFk(sz):
     TranslateJnt = cmds.xform(FkChain[2], q=True, t=True, ws=True)
     RotationJnt = cmds.xform(FkChain[2], query=True, rotation=True, worldSpace=True)
     if objName == "Arm" :
-        Ctrl_Hand=smallUsefulFct.controller(1,FkChain[2],f'CTRL_Hand_{side}',2)
+        Ctrl_Hand=smallUsefulFct.controller(1,FkChain[2],f'CTRL_Hand_{side}',size)
         smallUsefulFct.set_curve_color(Ctrl_Hand,16)
         cmds.xform(Ctrl_Hand, t=TranslateJnt, ro=RotationJnt, ws=True)
         smallUsefulFct.move(Ctrl_Hand)

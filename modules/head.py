@@ -44,17 +44,11 @@ def CreatelocHeadStructure(cb_org):
 def HeadStructure():
     ##Initialisation##
     Eyes=[]
-    IfBindNeck=cmds.objExists("Bind_neck_end")
     #Creation
     for i in range(len(joints_names)):
         tr_Loc=cmds.xform(locator_names[i], query=True, translation=True, worldSpace=True)
         cmds.select(clear=True)
         cmds.joint(n=f'{joints_names[i]}',p=tr_Loc)
-        if not IfBindNeck and  i == (len(locator_names)-1):
-            cmds.select(clear=True)
-            cmds.joint(n=f'Bind_neck_end',p=tr_Loc)
-            offBN=smallUsefulFct.move2("Bind_neck_end")
-            cmds.parent("Bind_neck_end",'JNT')
     
 
     cmds.select(clear=True)
@@ -247,8 +241,17 @@ def CtrlHeadStructure(sz):
 def LocNeck():
     loc=cmds.spaceLocator(n=f'Loc_Neck_Base')[0]
     loc2=cmds.spaceLocator(n=f'Loc_Neck_End')[0]
+    cmds.parent(loc2,loc)
 
-## NECK Fk
+
+
+
+        ##########
+        ## NECK ##
+        ##########
+
+
+
 def createNeckAlt(neckIk,sz) :
     nbIkJnt=cmds.intField(neckIk, query=True, value=True)+1
     sz=smallUsefulFct.GetDistLocScale(sz)

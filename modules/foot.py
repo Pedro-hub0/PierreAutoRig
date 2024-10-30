@@ -22,11 +22,7 @@ def createLocs():
         cmds.spaceLocator(name=name)[0]
     for name in folder_names:
         cmds.group(empty=True, name=name)
-    ctrlName="CTRL_Foot_"+side
-    if not cmds.objExists(f'CTRL_Foot_{side}'):
-        cmds.circle(name=ctrlName)[0]
-    
-    createAttributFoot(ctrlName,side)
+
     #Organiser
     if not cmds.objExists(f"Grp_temp_Locs_Foot_{side}") :
         cmds.group(empty=True, name=f"Grp_temp_Locs_Foot_{side}")
@@ -36,10 +32,13 @@ def createLocs():
 
 
 def OrganiseLocs(sz):
+
     selObj = cmds.ls(selection=True)
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")
     side=selObj[0][-1]
+    if not cmds.objExists(f'CTRL_Foot_{side}'):
+        raise ValueError("You need to create the leg before")
     #initialise names (can be optimised because it's created in 2 def)
     loc_names = ["Loc_Heel_"+side,"Loc_Toe_"+side,"Loc_Ball_"+side,"Loc_Bank_Ext_"+side, "Loc_Bank_Int_"+side,"CTRL_Foot_"+side]
     folder_names = ["Pivot_Ball_"+side, "Pivot_Toe_"+side, "Pivot_Toe_"+side+"_Offset"]

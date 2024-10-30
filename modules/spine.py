@@ -7,14 +7,15 @@ import math
 ###        Create Spine        ####
 ###################################    
 def creatLocsSpine():
-    loc=cmds.spaceLocator(n=f'Loc_Shoulder')
-    loc=cmds.spaceLocator(n=f'Loc_Root')
+    loc=cmds.spaceLocator(n=f'Loc_Spine_Shoulder')
+    loc=cmds.spaceLocator(n=f'Loc_Spine_Root')
+    cmds.parent('Loc_Spine_Shoulder','Loc_Spine_Root')
 
 def createSpine(spineIk,spineFk,sz) :
     nbIkJnt=cmds.intField(spineIk, query=True, value=True)
     nbFkJnt=cmds.intField(spineFk, query=True, value=True)
-    sz=smallUsefulFct.GetDistLocScale(sz)
-    LocName=['Loc_Root','Loc_Shoulder']
+    sz=smallUsefulFct.GetDistLocScale(sz)*2.5
+    LocName=['Loc_Spine_Root','Loc_Spine_Shoulder']
     JntName=['Jnt_Root','Jnt_Shoulder']
     IkJnts=[]
     FkJnts=[]
@@ -28,7 +29,8 @@ def createSpine(spineIk,spineFk,sz) :
     grp_Global='GlobalMove'
     grp_Iks='IKs'
     grp_Extranode="ExtraNodes"
-    if not cmds.objExists('Loc_Shoulder') or not cmds.objExists('Loc_Root'):
+    
+    if not cmds.objExists('Loc_Spine_Shoulder') or not cmds.objExists('Loc_Spine_Root'):
         raise ValueError("Create Locators")
 
     TranslateJnts = [cmds.xform(LocName[0], q=True, t=True, ws=True),cmds.xform(LocName[1], q=True, t=True, ws=True)]
