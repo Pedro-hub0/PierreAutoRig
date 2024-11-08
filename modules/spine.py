@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import smallUsefulFct
+import tools
 import math
 
 
@@ -13,7 +14,7 @@ def creatLocsSpine():
 
 def createSpine(spineIk,spineFk,sz) :
     nbIkJnt=cmds.intField(spineIk, query=True, value=True)
-    nbFkJnt=cmds.intField(spineFk, query=True, value=True)
+    nbFkJnt=cmds.intField(spineFk, query=True, value=True)+1
     sz=smallUsefulFct.GetDistLocScale(sz)*2.5
     LocName=['Loc_Spine_Root','Loc_Spine_Shoulder']
     JntName=['Jnt_Root','Jnt_Shoulder']
@@ -116,6 +117,9 @@ def createSpine(spineIk,spineFk,sz) :
     smallUsefulFct.move(Ctrl_Ik_Spine[1])        
         #Fk
     for i in range(1,nbFkJnt):
+        """OLD
+        
+
         TranslateCtrl=cmds.xform(FkJnts[i], query=True, translation=True, worldSpace=True)
         Ctrl_Fk_Spine.append(cmds.circle(name=f'Ctrl_{FkJnts[i]}',nr=[0,1,0],radius=sz)[0])                 
         #Transform Ik Ctrl_Fk_Spine to Jnt Fk Wrist
@@ -124,27 +128,32 @@ def createSpine(spineIk,spineFk,sz) :
         smallUsefulFct.move(Ctrl_Fk_Spine[i-1])
         if i>1:
             cmds.parent(f'{Ctrl_Fk_Spine[i-1]}_Offset',Ctrl_Fk_Spine[i-2])
-   
+        """
+        Ctrl_Fk_Spine.append(cmds.circle(name=f'Ctrl_{FkJnts[i]}',nr=[1,0,0],radius=sz)[0])                 
+        tools.parentshapeScript(Ctrl_Fk_Spine[i-1],FkJnts[i])
+        
 
     #Constraints 
         #Root to Fk root/Ik/ Shoulder to Ik/ 
     cmds.parentConstraint(f'{Ctrl_Ik_Spine[0]}',f'{JntName[0]}_Move', maintainOffset=True, weight=1)
     cmds.parentConstraint(f'{Ctrl_Ik_Spine[0]}',f'{FkJnts[0]}_Move', maintainOffset=True, weight=1)
-    cmds.parentConstraint(f'{Ctrl_Ik_Spine[0]}',f'{Ctrl_Fk_Spine[0]}_Move', maintainOffset=True, weight=1)
+    #cmds.parentConstraint(f'{Ctrl_Ik_Spine[0]}',f'{Ctrl_Fk_Spine[0]}_Move', maintainOffset=True, weight=1)
     cmds.parentConstraint(f'{Ctrl_Ik_Spine[1]}',f'{JntName[1]}_Move', maintainOffset=True, weight=1)
-    cmds.parentConstraint(f'{Ctrl_Fk_Spine[len(Ctrl_Fk_Spine)-1]}',f'{Ctrl_Ik_Spine[1]}_Move', maintainOffset=True, weight=1)
+    cmds.parentConstraint(f'{FkJnts[len(FkJnts)-1]}',f'{Ctrl_Ik_Spine[1]}_Move', maintainOffset=True, weight=1)
+        
+    """    
         #Fk
     i=1
     while i<nbFkJnt :
         cmds.parentConstraint(f'{Ctrl_Fk_Spine[i-1]}',f'{FkJnts[i]}', maintainOffset=True, weight=1)
         i+=1
-
+    """
     #Organiser
 
     grp_Ctrl_Spine=cmds.group(empty=True, name="Grp_CTRL_Spine")
     cmds.parent(f'{Ctrl_Ik_Spine[0]}_Offset',grp_Ctrl_Spine)
     cmds.parent(f'{Ctrl_Ik_Spine[1]}_Offset',grp_Ctrl_Spine)
-    cmds.parent(f'{Ctrl_Fk_Spine[0]}_Offset',grp_Ctrl_Spine)
+    #cmds.parent(f'{Ctrl_Fk_Spine[0]}_Offset',grp_Ctrl_Spine)
     cmds.parent(grp_Ctrl_Spine,grp_Ctrl)
 
     grp_Jnt_Spine=cmds.group(empty=True, name="Grp_Jnt_Spine")
@@ -156,6 +165,7 @@ def createSpine(spineIk,spineFk,sz) :
     cmds.parent(f'{ik_Handle}',grp_Iks)
     if not cmds.objExists("Grp_temp_Locs") :
         cmds.group(empty=True, name="Grp_temp_Locs")
-    cmds.parent(LocName,"Grp_temp_Locs")
+    if cmds.listRelatives("Loc_Spine_Root",parent=True) == None:  
+        cmds.parent(LocName,"Grp_temp_Locs")
 
 

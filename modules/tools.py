@@ -137,7 +137,20 @@ def parentshape():
     if not cmds.listRelatives(child_transform, children=True):
         cmds.delete(child_transform)
     cmds.delete(parent_shape)
-   
+
+def parentshapeScript(child_transform,parent_transform):
+
+    # Get the shape of the child
+    child_shape = cmds.listRelatives(child_transform, shapes=True, fullPath=True)[0]
+    # Re-parent the shape to the new parent transform
+    cmds.parent(child_shape, parent_transform, shape=True, relative=True)
+
+    # Optionally, delete the old transform node (if it becomes empty after re-parenting)
+    if not cmds.listRelatives(child_transform, children=True):
+        cmds.delete(child_transform)
+
+
+
 def selectJnt(name):
     pattern= name+"*"
     # Get all joints that match the pattern

@@ -9,6 +9,7 @@ def create_hips():
     ##Initialisation##
     jnt_Names = ['Bind_Hip','Bind_Leg_L','Bind_Leg_R']
     target_jnt_Names = ['Bind_Root','DrvJnt_Leg_L','DrvJnt_Leg_R']
+    target_jnt_Names2 = ['Fk_Leg_L','Fk_Leg_R']
     Ctrl_Fk=['CTRL_Fk_Leg_L_Move','CTRL_Fk_Leg_R_Move']
 
     # Create a new joint
@@ -30,6 +31,10 @@ def create_hips():
     for i in range(len(jnt_Names)-1):
         cmds.parentConstraint(jnt_Names[i+1],f'{target_jnt_Names[i+1]}_Move', maintainOffset=True, weight=1)
         cmds.parentConstraint(jnt_Names[i+1],Ctrl_Fk[i], maintainOffset=True, weight=1)
+    
+    
+    cmds.parentConstraint(jnt_Names[1],f'{target_jnt_Names2[0]}_Move', maintainOffset=True, weight=1)
+    cmds.parentConstraint(jnt_Names[2],f'{target_jnt_Names2[1]}_Move', maintainOffset=True, weight=1)
     
 def create_hips_Ctrl(size):
     if cmds.objExists('Bind_Hip'):

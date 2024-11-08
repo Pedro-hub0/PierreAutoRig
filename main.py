@@ -209,6 +209,15 @@ def create_window():
     cmds.separator(h=4)
     cmds.separator(h=8)
 
+    cmds.frameLayout(label='Follows', collapsable=True, collapse=True)
+    cmds.separator(h=8)
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
+    cmds.button(label='Create Arms Follows', command=lambda x:tools.armfollow(),width=100)
+    cmds.button(label='Create PV Follows', command=lambda x:tools.armfollow(),width=100)
+    cmds.button(label='Create Neck Follow', command=lambda x:tools.neckfollow(sizeCtrlArm),width=100)
+    cmds.setParent('..')
+    cmds.setParent('..')
+
     cmds.frameLayout(label='Neck', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(),width=100)
