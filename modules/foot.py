@@ -203,14 +203,14 @@ def ConnectFoot():
         remapHeelRotY = cmds.createNode('remapValue', name='remapV_Heel_RotY_'+side)
 
         # INITIALISE
-        initialiseRemap(remapFlexToe,-1,1,-20,20)
-        initialiseRemap(remapToeRotY,-1,1,-70,70)
+        smallUsefulFct.initialiseRemap(remapFlexToe,-1,1,-20,20)
+        smallUsefulFct.initialiseRemap(remapToeRotY,-1,1,-70,70)
 
-        initialiseRemap(remapFRPivotRotX,0,1,0,45)
-        initialiseRemap(remapFRToeRotX,0,1,0,45)
-        initialiseRemap(remapFRHeelRotX,-1,0,-40,0)
+        smallUsefulFct.initialiseRemap(remapFRPivotRotX,0,1,0,45)
+        smallUsefulFct.initialiseRemap(remapFRToeRotX,0,1,0,45)
+        smallUsefulFct.initialiseRemap(remapFRHeelRotX,-1,0,-40,0)
 
-        initialiseRemap(remapHeelRotY,-1,1,-40,70)
+        smallUsefulFct.initialiseRemap(remapHeelRotY,-1,1,-40,70)
 
         cmds.setAttr(f"{remapFRPivotRotX}.value[3].value_Position", 0.5)
         cmds.setAttr(f"{remapFRPivotRotX}.value[3].value_FloatValue",1)
@@ -269,17 +269,17 @@ def ConnectFoot():
         remapHeelRotY = cmds.createNode('remapValue', name='remapV_Heel_RotY_'+side)
 
         # INITIALISE
-        initialiseRemap(remapFlexToe,-1,1,-20,20)
-        initialiseRemap(remapToeRotY,-1,1,-70,70)
+        smallUsefulFct.initialiseRemap(remapFlexToe,-1,1,-20,20)
+        smallUsefulFct.initialiseRemap(remapToeRotY,-1,1,-70,70)
 
-        initialiseRemap(remapFRPivotRotX,0,1,0,-45)
+        smallUsefulFct.initialiseRemap(remapFRPivotRotX,0,1,0,-45)
 
 
  
-        initialiseRemap(remapFRToeRotX,0,1,0,45)
-        initialiseRemap(remapFRHeelRotX,-1,0,-40,0)
+        smallUsefulFct.initialiseRemap(remapFRToeRotX,0,1,0,45)
+        smallUsefulFct.initialiseRemap(remapFRHeelRotX,-1,0,-40,0)
 
-        initialiseRemap(remapHeelRotY,-1,1,-70,40)
+        smallUsefulFct.initialiseRemap(remapHeelRotY,-1,1,-70,40)
         cmds.setAttr(f"{remapFRPivotRotX}.value[3].value_Position", 0.5)
         cmds.setAttr(f"{remapFRPivotRotX}.value[3].value_FloatValue",1)
         cmds.setAttr(f"{remapFRPivotRotX}.value[3].value_Interp", 1)
@@ -323,11 +323,7 @@ def ConnectFoot():
 
     if cmds.objExists(f'Ik_Leg_{side}'):
         cmds.connectAttr(Ctrl + ".Twist_Leg", f'Ik_Leg_{side}.twist')
-def initialiseRemap(n,a,b,c,d):
-        cmds.setAttr(n + '.inputMin', a)
-        cmds.setAttr(n + '.inputMax', b)
-        cmds.setAttr(n + '.outputMin', c)
-        cmds.setAttr(n + '.outputMax', d)
+
 
 def mirorFeet():
     selObj = cmds.ls(selection=True)

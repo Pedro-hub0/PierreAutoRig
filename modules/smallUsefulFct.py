@@ -331,3 +331,10 @@ def get_translate_between(obj1, obj2):
                 (pos1[1] + pos2[1]) / 2, 
                 (pos1[2] + pos2[2]) / 2]
     return midpoint
+
+
+def initialiseRemap(n,a,b,c,d):
+        cmds.setAttr(n + '.inputMin', a)
+        cmds.setAttr(n + '.inputMax', b)
+        cmds.setAttr(n + '.outputMin', c)
+        cmds.setAttr(n + '.outputMax', d)

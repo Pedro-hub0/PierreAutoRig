@@ -302,7 +302,8 @@ def createNeckAlt(neckIk,sz) :
         cmds.parent(f'{Ctrl_Fk_Neck[0]}_Offset','CTRL')
     
     ##CONSTRAINTS Folder neck
-    cmds.parentConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Offset',maintainOffset=True, weight=1)
+    cmds.pointConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Offset',maintainOffset=True, weight=1)
+    cmds.orientConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Offset',maintainOffset=True, weight=1)
     cmds.parentConstraint(lastSpineJnt,f'Bind_Neck_00_Offset',maintainOffset=True, weight=1)
 
 ## NECK Ik Fk

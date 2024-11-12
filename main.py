@@ -59,6 +59,8 @@ def create_window():
 
     cmds.separator(h=8)
     cmds.button(label='Squash And Stretch', command=lambda x:stretch.Stretchfct(),width=120)
+    cmds.button(label='Follows', command=lambda x:tools.CreateFollows(),width=120)
+
     cmds.separator(h=8)
     # Crée une frame layout (volet repliable)
     cmds.frameLayout(label='FULL AUTO', collapsable=True, collapse=True)
