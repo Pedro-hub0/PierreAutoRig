@@ -122,9 +122,10 @@ def OrganiseLocs(sz):
 
    #Parents Locs empty folder
     if cmds.objExists(folder_names[1]) and cmds.objExists(folder_names[2]):
-        cmds.xform(folder_names[1], translation=tr_Toe, worldSpace=True)
+        cmds.xform(folder_names[1], translation=tr_Ball, worldSpace=True)
         cmds.parent(folder_names[1], folder_names[2])
     if cmds.objExists(folder_names[2]) and cmds.objExists(loc_names[0]):
+        cmds.xform(folder_names[1], translation=tr_Ball, worldSpace=True)
         cmds.parent(folder_names[2], loc_names[0])
     if cmds.objExists(folder_names[0]) and cmds.objExists(loc_names[0]):
         cmds.xform(folder_names[0], translation=tr_Ball, worldSpace=True)

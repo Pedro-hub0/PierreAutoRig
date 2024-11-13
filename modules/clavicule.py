@@ -103,6 +103,8 @@ def createClavicule():
     if cmds.listRelatives(grp_Ctrl_Clav,parent=True) ==  None:  
         cmds.parent(grp_Ctrl_Clav,grp_Ctrl)
 
+    if cmds.objExists("CTRL_Torso"):
+        cmds.parentConstraint("CTRL_Torso",f'{CtrlClav}_Move', maintainOffset=True, weight=1)
     return
 
 

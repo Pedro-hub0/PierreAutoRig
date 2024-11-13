@@ -153,7 +153,7 @@ def createIkFk(sz):
     TranslateShoulderMove=(TranslateShoulder[0],TranslateShoulder[1],TranslateShoulder[2]+move)
     cmds.xform(Pv_Ik_Arm, t=TranslateShoulderMove, ws=True)
     cmds.poleVectorConstraint(Pv_Ik_Arm, ik_handle_Arm)
-    smallUsefulFct.offset(Pv_Ik_Arm)
+    smallUsefulFct.move(Pv_Ik_Arm)
 
     #Fk Controller 
     if objName == "Arm" :

@@ -86,7 +86,8 @@ def create_window():
     cmds.setParent('..') 
     cmds.setParent('..')
     cmds.separator(h=8)
-
+    cmds.frameLayout(label='Step By Step', collapsable=True, collapse=True)
+    cmds.separator(h=10)
     cmds.frameLayout(label='Spine', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
@@ -111,7 +112,7 @@ def create_window():
     cmds.button(label='Ik_Fk_Arm/Leg', command=lambda x:armLeg.createIkFk(sizeCtrlArm),width=100)
     cmds.button(label='Mirror', command=lambda x:armLeg.mirror(sizeCtrlArm),width=100)
     cmds.setParent('..') 
-    cmds.separator(h=15)
+    cmds.separator(h=8)
     cmds.setParent('..')
 
     cmds.frameLayout(label='Clavicle', collapsable=True, collapse=True)
@@ -209,29 +210,23 @@ def create_window():
     cmds.button(label='Create Ctrl Global', command=lambda x:globalscale.CreateGlobal(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.separator(h=4)
-    cmds.separator(h=8)
 
-    cmds.frameLayout(label='Follows', collapsable=True, collapse=True)
-    cmds.separator(h=8)
-    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
-    cmds.button(label='Create Arms Follows', command=lambda x:tools.armfollow(),width=100)
-    cmds.button(label='Create PV Follows', command=lambda x:tools.armfollow(),width=100)
-    cmds.button(label='Create Neck Follow', command=lambda x:tools.neckfollow(sizeCtrlArm),width=100)
-    cmds.setParent('..')
-    cmds.setParent('..')
+
+
 
     cmds.frameLayout(label='Neck', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(),width=100)
 
-    cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
-    cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
-    neckIk = cmds.intField(value=6,width=75)
-    cmds.text(label="Fk", font = "boldLabelFont" , w = 75, align = "center")
-    neckFk = cmds.intField(value=3,width=75)
+    #cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
+    #cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
+    #neckIk = cmds.intField(value=6,width=75)
+    cmds.text(label="Nbr Jnts", font = "boldLabelFont" , w = 75, align = "center")
+    neckFk = cmds.intField(value=1,width=75)
     cmds.setParent('..')
     cmds.button(label='Neck Fk', command=lambda x:head.createNeckAlt(neckFk,sizeCtrlArm),width=100)
-    cmds.button(label='Neck Ik/Fk', command=lambda x:head.createNeck(neckIk,neckFk,sizeCtrlArm),width=100)
+    #cmds.button(label='Neck Ik/Fk', command=lambda x:head.createNeck(neckIk,neckFk,sizeCtrlArm),width=100)
     cmds.setParent('..')
     
     cmds.frameLayout(label='Head', collapsable=True, collapse=True)
@@ -245,7 +240,7 @@ def create_window():
     cmds.button(label='Create CTRL', command=lambda x:head.CtrlHeadStructure(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.setParent('..')
-    
+    cmds.setParent('..')
 
     cmds.separator(h=8)
 
@@ -259,6 +254,18 @@ def create_window():
     cmds.text(label="TOOLS", font = "boldLabelFont" , w = 300, align = "center")
     cmds.separator(h=8)
 
+    cmds.frameLayout(label='CTRL On Selection',w = 300, collapsable=True, collapse=True)
+    cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
+    cb_parent= cmds.checkBox(label="Parent",v=True)
+    cb_cstr_Point = cmds.checkBox(label="Point",v=False)
+    cb_cstr_Orient = cmds.checkBox(label="Orient",v=False)
+    cb_cstr_Move= cmds.checkBox(label="Move",v=True)
+    cmds.setParent('..')
+    cb_cstr=[cb_parent,cb_cstr_Point,cb_cstr_Orient,cb_cstr_Move]
+    cmds.button(label='Controllers On Selection', command=lambda x:tools.CtrlParentCreate(cb_cstr),width=300)
+    cmds.setParent('..')
+    
+    
     cmds.frameLayout(label='Lock Attribute',w = 300, collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
@@ -395,7 +402,9 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
         ribbon.AttachRib(cb_attach)
 
         
-
     #General 
     cmds.select(clear=True)
     globalscale.CreateGlobal(sz)
+
+    #Follows
+    tools.CreateFollows()

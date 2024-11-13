@@ -105,10 +105,11 @@ def HeadStructure():
     lastNeckJnt=lastNeck()
     cmds.parentConstraint(f'{lastNeckJnt}',offset_jnt_hdpiv01, maintainOffset=True, weight=1)
     cmds.parent(offset_jnt_hdpiv01,'JNT')
-def lastSpine():
 
+def lastSpine():
+    LastSpine='Bind_Spine_01'
+    if cmds.objExists('Bind_Root'):
         SpineChain = cmds.listRelatives('Bind_Root', allDescendents=True, type='joint') or []
-        LastSpine='Bind_Spine_01'
         for n in SpineChain:
             if 'Spine' in n:
                 LastSpine=n
@@ -116,13 +117,23 @@ def lastSpine():
         return LastSpine
 
 def lastNeck():
-
-        NeckChain = cmds.listRelatives('Bind_Neck_00', allDescendents=True, type='joint') or []
         LastNeck='Bind_Neck_01'
-        for n in NeckChain:
-            if 'Neck' in n:
-                LastNeck=n
-                break
+        if cmds.objExists('Bind_Neck_00'):
+            NeckChain = cmds.listRelatives('Bind_Neck_00', allDescendents=True, type='joint') or []
+            for n in NeckChain:
+                if 'Neck' in n:
+                    LastNeck=n
+                    break
+        return LastNeck
+
+def lastCTRLneck():
+        LastNeck='Ctrl_Bind_Neck_01'
+        if cmds.objExists('Ctrl_Bind_Neck_01'):
+            NeckChain = cmds.listRelatives('Ctrl_Bind_Neck_01', allDescendents=True,  type="transform") or []
+            for n in NeckChain:
+                if 'Ctrl_Bind_Neck' in n:
+                    LastNeck=n
+                    break
         return LastNeck
 
 def CtrlHeadStructure(sz):
@@ -234,9 +245,12 @@ def CtrlHeadStructure(sz):
 
 
     cmds.expression(name=exp_name_Eyelides, string=expEyelides)
-
     
-    cmds.parent(ctrl_head_offset,'CTRL_Torso')
+    if cmds.objExists('JNT'):
+        cmds.parent(ctrl_head_offset,'JNT')
+    cmds.pointConstraint(lastNeck(),'CTRL_Head_01_Move',maintainOffset=True, weight=1)
+    cmds.orientConstraint(lastCTRLneck(),'CTRL_Head_01_Move',maintainOffset=True, weight=1)  
+    #cmds.parent(ctrl_head_offset,'CTRL_Torso')
     
 def LocNeck():
     loc=cmds.spaceLocator(n=f'Loc_Neck_Base')[0]
@@ -302,8 +316,8 @@ def createNeckAlt(neckIk,sz) :
         cmds.parent(f'{Ctrl_Fk_Neck[0]}_Offset','CTRL')
     
     ##CONSTRAINTS Folder neck
-    cmds.pointConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Offset',maintainOffset=True, weight=1)
-    cmds.orientConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Offset',maintainOffset=True, weight=1)
+    cmds.pointConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Move',maintainOffset=True, weight=1)
+    cmds.orientConstraint('CTRL_Torso',f'{Ctrl_Fk_Neck[0]}_Move',maintainOffset=True, weight=1)
     cmds.parentConstraint(lastSpineJnt,f'Bind_Neck_00_Offset',maintainOffset=True, weight=1)
 
 ## NECK Ik Fk

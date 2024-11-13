@@ -2,7 +2,9 @@ import maya.cmds as cmds
 import smallUsefulFct
 import math
 import importlib
+import head
 importlib.reload(smallUsefulFct)
+importlib.reload(head)
 
 
 ###################################
@@ -182,63 +184,87 @@ def CreateFollows():
 
     sides=['L','R']
     followElement=['CTRL_Root','CTRL_Torso']
+    CTRL_Element=['Hand','Foot']
+    LastCtrlNeck=head.lastCTRLneck()
+    flws=[]
+    flws.append(FollowElement('Ctrl_Bind_Neck_01','CTRL_Torso'))
+    flws.append(FollowElement('CTRL_Head_01',f'{LastCtrlNeck}'))
+
         ### FOLLOW ###
 
     for side in sides:
-    # Hand
-        # Create Attribute
-        # Generate enum names dynamically using a loop
-        enum_names=':Global'
-        for i in range(0, len(followElement)):
-            enum_names =f"{enum_names}:{followElement[i].split('_')[-1]}" # Creates "Option1:Option2:Option3"
+        for Ctrls in CTRL_Element:
+            # Create Attribute
+            # Generate enum names dynamically using a loop
+            enum_names=':Global'
+            for i in range(0, len(followElement)):
+                enum_names =f"{enum_names}:{followElement[i].split('_')[-1]}" # Creates "Option1:Option2:Option3"
 
-        if cmds.objExists(f'CTRL_Hand_{side}'):
-            if not cmds.attributeQuery(f'______', node=f'CTRL_Hand_{side}', exists=True):
-                cmds.addAttr(f'CTRL_Hand_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
+            if cmds.objExists(f'CTRL_{Ctrls}_{side}'):
+                if not cmds.attributeQuery(f'______', node=f'CTRL_{Ctrls}_{side}', exists=True):
+                    cmds.addAttr(f'CTRL_{Ctrls}_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
+                
+                if not cmds.attributeQuery(f'Follow', node=f'CTRL_{Ctrls}_{side}', exists=True):
+                    cmds.addAttr(f'CTRL_{Ctrls}_{side}', longName='Follow', attributeType='enum',enumName=f"{enum_names}", defaultValue=0,keyable=True)
+            else:
+                print(f'You don t have a CTRL_{Ctrls}_{side} \n ')
             
-            if not cmds.attributeQuery(f'Follow', node=f'CTRL_Hand_{side}', exists=True):
-                cmds.addAttr(f'CTRL_Hand_{side}', longName='Follow', attributeType='enum',enumName=f"{enum_names}", defaultValue=0,keyable=True)
+            # Create a Constraints
+            for element in followElement:
+                if not cmds.objExists(f"CTRL_{Ctrls}_{side}_Move_parentConstraint1.{element}W0"):
+                    tempCstr=cmds.parentConstraint(f"{element}",f'CTRL_{Ctrls}_{side}_Move',maintainOffset=True)[0]
+                else:
+                    tempCstr=f"CTRL_{Ctrls}_{side}_Move_parentConstraint1"
+
+            #Create Remaps
+            # Global // Neutral Remap 
+            remapFollow0 = cmds.createNode('remapValue', name=f'remapV_follow_Global_{Ctrls}_{side}')
+            smallUsefulFct.initialiseRemap(remapFollow0,0,2,0,1)
+            for j in range(0,len(followElement)):
+                cmds.setAttr(f"{remapFollow0}.value[{j}].value_Position", 0)
+                cmds.setAttr(f"{remapFollow0}.value[{j}].value_FloatValue",0)
+                cmds.setAttr(f"{remapFollow0}.value[{j}].value_Interp", 1)
+
+            # Others Remaps      
+            for i in range(0,len(followElement)):
+                if cmds.objExists(followElement[i]):
+                    remapFollow = cmds.createNode('remapValue', name=f'remapV_follow_{followElement[i]}_{Ctrls}_{side}')
+                    smallUsefulFct.initialiseRemap(remapFollow,0,2,0,1)
+
+                    for j in range(0,len(followElement)+1):
+                        cmds.setAttr(f"{remapFollow}.value[{j}].value_Position", j*(1/(len(followElement))))
+                        if j == i+1:x = 1 
+                        else: x = 0
+                        cmds.setAttr(f"{remapFollow}.value[{j}].value_FloatValue",x)
+                        cmds.setAttr(f"{remapFollow}.value[{j}].value_Interp", 1)
+                        
+                    cmds.connectAttr(f'CTRL_{Ctrls}_{side}.Follow',f'{remapFollow}.inputValue')
+                    cmds.connectAttr(f'{remapFollow}.outValue',f'{tempCstr}.{followElement[i]}W{i}')
+
+                else:
+                    print(f'You don t have a {followElement[i]} \n ')
+
+    ### Pole Vectors ####
+            
+        # Create Attribute
+                # Create Attribute
+        if cmds.objExists(f'Pv_Leg_{side}'):
+            if not cmds.attributeQuery(f'______', node=f'Pv_Leg_{side}', exists=True):
+                cmds.addAttr(f'Pv_Leg_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
+            if not cmds.attributeQuery(f'Global', node=f'Pv_Leg_{side}', exists=True):
+                cmds.addAttr(f'Pv_Leg_{side}', longName='Global', attributeType='float',min=0,max=1, defaultValue=1,keyable=True)
+        
         else:
-            print(f'You don t have a CTRL_Hand_{side} \n ')
-        
-        
-        # Create a Constraints
-        for element in followElement:
-            if not cmds.objExists(f"CTRL_Hand_{side}_Move_parentConstraint1.{element}W0"):
-                tempCstr=cmds.parentConstraint(f"{element}",f'CTRL_Hand_{side}_Move',maintainOffset=True)[0]
-            else:
-                tempCstr=f"CTRL_Hand_{side}_Move_parentConstraint1"
-
-
-        #Create Remaps
-        # Global // Neutral Remap 
-        remapFollow0 = cmds.createNode('remapValue', name=f'remapV_follow_Global_Hand_{side}')
-        smallUsefulFct.initialiseRemap(remapFollow0,0,2,0,1)
-        for j in range(0,len(followElement)):
-            cmds.setAttr(f"{remapFollow0}.value[{j}].value_Position", 0)
-            cmds.setAttr(f"{remapFollow0}.value[{j}].value_FloatValue",0)
-            cmds.setAttr(f"{remapFollow0}.value[{j}].value_Interp", 1)
-
-        # Others Remaps      
-        for i in range(0,len(followElement)):
-            if cmds.objExists(followElement[i]):
-                remapFollow = cmds.createNode('remapValue', name=f'remapV_follow_{followElement[i]}_Hand_{side}')
-                smallUsefulFct.initialiseRemap(remapFollow,0,2,0,1)
-
-                for j in range(0,len(followElement)+1):
-                    cmds.setAttr(f"{remapFollow}.value[{j}].value_Position", j*(1/(len(followElement))))
-                    if j == i+1:x = 1 
-                    else: x = 0
-                    cmds.setAttr(f"{remapFollow}.value[{j}].value_FloatValue",x)
-                    cmds.setAttr(f"{remapFollow}.value[{j}].value_Interp", 1)
-                    
-                cmds.connectAttr(f'CTRL_Hand_{side}.Follow',f'{remapFollow}.inputValue')
-                cmds.connectAttr(f'{remapFollow}.outValue',f'{tempCstr}.{followElement[i]}W{i}')
-
-            else:
-                print(f'You don t have a {followElement[i]} \n ')
-
-            # Put Value Constraint
+            print(f'You don t have a Pv_Leg_{side} \n ')
+        # Create a Constraint 
+        if not cmds.objExists(f"Pv_Leg_{side}_Move_parentConstraint1.CTRL_Foot_{side}W0"):
+            tempCstr2=cmds.parentConstraint(f"CTRL_Foot_{side}",f'Pv_Leg_{side}_Move',maintainOffset=True)[0]
+        else:
+            tempCstr2=f"Pv_Leg_{side}_Move_parentConstraint1"
+        # Put Value Constraint
+        if cmds.objExists(tempCstr):
+            cmds.connectAttr(f'Pv_Leg_{side}.Global',f"Pv_Leg_{side}_Move_parentConstraint1.CTRL_Foot_{side}W0")
+            
 
 
 
@@ -251,7 +277,7 @@ def CreateFollows():
             if not cmds.attributeQuery(f'______', node=f'CTRL_Fk_Shoulder_{side}', exists=True):
                 cmds.addAttr(f'CTRL_Fk_Shoulder_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
             if not cmds.attributeQuery(f'Global', node=f'CTRL_Fk_Shoulder_{side}', exists=True):
-                cmds.addAttr(f'CTRL_Fk_Shoulder_{side}', longName='Global', attributeType='float',min=0,max=1, defaultValue=0,keyable=True)
+                cmds.addAttr(f'CTRL_Fk_Shoulder_{side}', longName='Global', attributeType='float',min=0,max=1, defaultValue=1,keyable=True)
         
         else:
             print(f'You don t have a CTRL_Fk_Shoulder_{side} \n ')
@@ -261,23 +287,47 @@ def CreateFollows():
         if cmds.objExists(tempCstr):
             cmds.connectAttr(f'CTRL_Fk_Shoulder_{side}.Global',f'{tempCstr}.CTRL_TorsoW0')
             
-"""
-    # Fk Neck
-    # Create Attribute
-            # Create Attribute
-    if cmds.objExists(f'Ctrl_Bind_Neck_01'):
-        if not cmds.attributeQuery(f'______', node=f'Ctrl_Bind_Neck_01', exists=True):
-            cmds.addAttr(f'CTRL_Fk_Shoulder_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
-        if not cmds.attributeQuery(f'Global', node=f'Ctrl_Bind_Neck_01', exists=True):
-            cmds.addAttr(f'CTRL_Fk_Shoulder_{side}', longName='Global', attributeType='float',min=0,max=1, defaultValue=0,keyable=True)
-    
-    else:
-        print(f'You don t have a Ctrl_Bind_Neck_01 \n ')
-    # Create a Constraint 
-    tempCstr= f"CTRL_Fk_Shoulder_{side}_Move_orientConstraint1"
-    # Put Value Constraint
-    if cmds.objExists(tempCstr):
-        cmds.connectAttr(f'CTRL_Fk_Shoulder_{side}.Global',f'{tempCstr}.CTRL_TorsoW0')
-        
 
-"""
+    # Fk Neck / Head (followGlobalElements)
+    for i in range(0,len(flws)):
+        # Create Attribute
+                # Create Attribute
+        if cmds.objExists(f'{flws[i].follower}'):
+            if not cmds.attributeQuery(f'______', node=f'{flws[i].follower}', exists=True):
+                cmds.addAttr(f'{flws[i].follower}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
+            if not cmds.attributeQuery(f'Global', node=f'{flws[i].follower}', exists=True):
+                cmds.addAttr(f'{flws[i].follower}', longName='Global', attributeType='float',min=0,max=1, defaultValue=1,keyable=True)
+        
+        else:
+            print(f'You don t have a {flws[i].follower} \n ')
+        # Create a Constraint 
+        tempCstr= f"{flws[i].follower}_Move_orientConstraint1"
+        # Put Value Constraint
+        if cmds.objExists(tempCstr):
+            cmds.connectAttr(f'{flws[i].follower}.Global',f'{tempCstr}.{flws[i].follow}W0')
+            
+def CtrlParentCreate(cbcstr):
+    selObj = cmds.ls(selection=True)
+    checkboxs=[]
+    for cb in cbcstr:
+        checkboxs.append(cmds.checkBox(cb, query=True, value=True))
+    
+    for sel in selObj:
+        Ctrl=cmds.circle(name=f'Ctrl_{sel}',nr=[1,0,0],radius=2)[0]     
+        tr_Sel=cmds.xform(sel,translation=True, query=True, worldSpace=True)
+        cmds.xform(Ctrl,translation=tr_Sel, worldSpace=True)             
+        if checkboxs[0]:
+            cmds.parentConstraint(Ctrl,sel, maintainOffset=True, weight=1)
+        if checkboxs[1]:
+            cmds.pointConstraint(Ctrl,sel, maintainOffset=True, weight=1)
+        if checkboxs[2]:
+            cmds.orientConstraint(Ctrl,sel, maintainOffset=True, weight=1)
+        if checkboxs[3]:
+            smallUsefulFct.move2(Ctrl)
+
+class FollowElement:
+    def __init__(self, follower, follow):
+        self.follower = follower
+        self.follow = follow
+
+
