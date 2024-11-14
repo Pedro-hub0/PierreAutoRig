@@ -62,7 +62,7 @@ def createIkFk(sz):
     FkCtrl=[]
     ConstrBindHand=[]
     size=smallUsefulFct.GetDistLocScale(sz)
-
+    ikvalue=0
 
     # Find the index of the letter after which you want to grab the name
     #index_of_letter = selObj[0].find('_')  # Assuming you want to grab the name after the underscore
@@ -71,10 +71,11 @@ def createIkFk(sz):
     if objName == "Arm" :
         Fk_jnt_Names = [f'Fk_Shoulder_{side}',f'Fk_Elbow_{side}',f'Fk_Wrist_{side}']
         Ik_jnt_Names = [f'DrvJnt_Shoulder_{side}',f'DrvJnt_Elbow_{side}',f'DrvJnt_Wrist_{side}']
+        ikvalue = 0
     elif objName == "Leg" :
         Fk_jnt_Names = [f'Fk_Leg_{side}',f'Fk_Knee_{side}',f'Fk_Ankle_{side}']
         Ik_jnt_Names = [f'DrvJnt_Leg_{side}',f'DrvJnt_Knee_{side}',f'DrvJnt_Ankle_{side}']
-  
+        ikvalue = 1 
     else :
         raise ValueError("You need to name your joint like Arm_L or Leg_R for example ")
     
@@ -227,7 +228,7 @@ def createIkFk(sz):
     cmds.move(ikFkSide,2*size, 0, ofCtrl, r=True, os=True)  
     
     #Add An attribute 
-    cmds.addAttr(Ctrl_SwitchIkFk, longName="Switch_Ik_Fk", attributeType="float", defaultValue=0, minValue=0.0, maxValue=1.0,keyable=True)
+    cmds.addAttr(Ctrl_SwitchIkFk, longName="Switch_Ik_Fk", attributeType="float", defaultValue=ikvalue, minValue=0.0, maxValue=1.0,keyable=True)
     smallUsefulFct.lock_and_hide_attributes(f'CTRL_IkFk_{objName}_{side}')
     MyPbFct(objName,side,Ctrl_SwitchIkFk,IkChain,FkChain)
 

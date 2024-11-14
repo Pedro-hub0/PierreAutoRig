@@ -26,7 +26,28 @@ importlib.reload(modules.hand)
 
 
 from modules import *
-
+colors = [
+    ("White", (1, 1, 1)),
+    ("Black", (0, 0, 0)),
+    ("Red", (1, 0, 0)),
+    ("Green", (0, 1, 0)),
+    ("Blue", (0, 0, 1)),
+    ("Yellow", (1, 1, 0)),
+    ("Cyan", (0, 1, 1)),
+    ("Magenta", (1, 0, 1)),
+    ("Gray", (0.5, 0.5, 0.5)),
+    ("Light Gray", (0.75, 0.75, 0.75)),
+    ("Dark Gray", (0.25, 0.25, 0.25)),
+    ("Orange", (1, 0.5, 0)),
+    ("Purple", (0.5, 0, 0.5)),
+    ("Pink", (1, 0.75, 0.8)),
+    ("Brown", (0.6, 0.3, 0)),
+    ("Olive", (0.5, 0.5, 0)),
+    ("Teal", (0, 0.5, 0.5)),
+    ("Navy", (0, 0, 0.5)),
+    ("Light Blue", (0.5, 0.75, 1)),
+    ("Lime", (0.5, 1, 0))
+]
 
 """Script created by Pierre LIPPENS """
 
@@ -261,6 +282,8 @@ def create_window():
     cb_cstr_Orient = cmds.checkBox(label="Orient",v=False)
     cb_cstr_Move= cmds.checkBox(label="Move",v=True)
     cmds.setParent('..')
+  
+
     cb_cstr=[cb_parent,cb_cstr_Point,cb_cstr_Orient,cb_cstr_Move]
     cmds.button(label='Controllers On Selection', command=lambda x:tools.CtrlParentCreate(cb_cstr),width=300)
     cmds.setParent('..')
@@ -408,3 +431,11 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
 
     #Follows
     tools.CreateFollows()
+
+
+
+# Function to set the selected color
+def set_color(color):
+    global selected_color
+    selected_color = color
+
