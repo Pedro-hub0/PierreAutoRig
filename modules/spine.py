@@ -65,12 +65,12 @@ def createSpine(spineIk,spineFk,sz) :
 
     #Orient 
         #Ik
-    cmds.joint(FkJnts[0],e=True, oj='xyz', sao='yup', ch=True, zso=True)
+    cmds.joint(FkJnts[0],e=True, oj='yzx', sao='yup', ch=True, zso=True)
     cmds.joint(FkJnts[len(FkJnts)-1], e=True, oj='none', ch=True, zso=True)
         #Fk
-    cmds.joint(IkJnts[0],e=True, oj='xyz', sao='yup', ch=True, zso=True)
+    cmds.joint(IkJnts[0],e=True, oj='yzx', sao='yup', ch=True, zso=True)
     cmds.joint(IkJnts[len(IkJnts)-1], e=True, oj='none', ch=True, zso=True)
-    
+
     #Create Ik 02
     temp=cmds.duplicate(IkJnts[0],parentOnly=True)[0]
     cmds.rename(temp,JntName[0])
@@ -114,7 +114,8 @@ def createSpine(spineIk,spineFk,sz) :
     smallUsefulFct.set_curve_color(Ctrl_Ik_Spine[0],colorIk)
     smallUsefulFct.set_curve_color(Ctrl_Ik_Spine[1],colorIk)
     smallUsefulFct.move(Ctrl_Ik_Spine[0]) 
-    smallUsefulFct.move(Ctrl_Ik_Spine[1])        
+    smallUsefulFct.move(Ctrl_Ik_Spine[1])     
+    #Match Orient   
         #Fk
     for i in range(1,nbFkJnt):
         """OLD

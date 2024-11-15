@@ -154,12 +154,21 @@ def parentshapeScript(child_transform,parent_transform):
 
 
 def selectJnt(name):
-    pattern= name+"*"
-    # Get all joints that match the pattern
-    joints = cmds.ls(pattern, type="joint")
+    selObj = cmds.ls(selection=True)
 
-    # Select the found joints
-    cmds.select(joints, r=True)
+    if len(selObj)<1:
+        pattern= name+"*"
+        # Get all joints that match the pattern
+        joints = cmds.ls(pattern, type="joint")
+
+        # Select the found joints
+        cmds.select(joints, r=True)
+    else:
+        for sel in selObj:
+            all_joints = cmds.listRelatives(sel, allDescendents=True, type="joint")
+            bind_joints = [joint for joint in all_joints if "bind" in joint.lower()]
+            current_selection = cmds.ls(selection=True)
+            cmds.select(current_selection+bind_joints, r=True)
 
 def LocScale():
     if not cmds.objExists("Loc_Echelle_01"):
