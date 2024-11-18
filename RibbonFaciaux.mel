@@ -1,0 +1,461 @@
+/* 
+    That Script Help to create Bind Joints, Follicles and Driven Joints When you already have a Curve and a loft Surface (Loft)
+    You need to select a curve and a loft surface
+    Choose a name and the number of follicle
+
+    That's a mix of different Script Like The Offset By Mr Landreau 
+    Made By Pierre LIPPENS
+
+    Unfortunately really not optimise but it's Working
+*/
+
+Ribb_window();
+
+
+proc Ribb_window() 
+{//wp_jointOnCurves_window
+
+    if (`window -q -ex Ribb_window`) deleteUI Ribb_window;
+
+    window -title "Help Ribbon" -maximizeButton off -minimizeButton on -sizeable off -width 140 -height 250 Ribb_window;
+
+    columnLayout;
+        // text "Select curves and..."
+        text -label "" -h 6;
+        rowColumnLayout -numberOfColumns 2 -cw 1 5 -cw 2 200;
+            text -label "";
+            text -label "Ribbon Joint And Follicles" -font "boldLabelFont";
+        setParent ..;
+        text -label "" -h 6;	
+
+        // text infield "Curve Creation"
+        rowColumnLayout -numberOfColumns 2
+                        -cw 1 90 -cw 2 90 
+                        -cs 1 10 -cs 2 10;
+            text -label "Select Edge";
+            text -label "";
+        setParent ..;
+        rowColumnLayout -numberOfColumns 2
+                        -cw 1 90 -cw 2 90 
+                        -cs 1 10 -cs 2 10;
+            button -label "Create Curve 01" -bgc 0.675 0.663 0.843 -c "CreateCurve(\"01\")";
+            button -label "Create Curve 02" -bgc 0.675 0.663 0.843 -c "CreateCurve(\"02\")";
+        setParent ..;
+        
+        // text infield "Number Of Joints"
+        rowColumnLayout -numberOfColumns 2
+                        -cw 1 90 -cw 2 90   // Set all column widths to 80
+                        -cs 1 10 -cs 2 10;  // Set a
+            text -label "Enter Name:";
+            textField -w 300 textInput;
+            text -label "Number Of Joints";
+            intField -minValue 2 -v 10 wp_jointOnCurves_window02_numOfJoint_second;
+            text -label "" -h 6;
+            text -label "" -h 6;
+            button -label "Create" -bgc 0.675 0.663 0.843 -c "RibbFct(\"joint\")";
+        setParent ..;
+
+
+        text -label "" -h 20;
+            
+
+        // text "Select curves and..."
+        text -label "" -h 6;
+        rowColumnLayout -numberOfColumns 2 -cw 1 5 -cw 2 200;
+            text -label "";
+            text -label "CTRL ON RIVET" -font "boldLabelFont";
+        setParent ..;
+        text -label "" -h 6;	
+
+        // text infield "Curve Creation"
+        rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cw 3 60 -cs 1 20 -cs 2 5 -cs 3 5;
+            text -label "Select Edge";
+            button -label "Controller on Rivet" -bgc 0.675 0.663 0.843 -c "ctrlOnRivet()";
+        setParent ..;
+                // text infield "Curve Creation"
+        text -label "" -h 6;	
+        rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
+        //Select first Ctrl/ Drv/ Ctlr/Ctrl
+            text -label "Connect Ctrl DrvJnt";
+            button -label "Connect" -bgc 0.675 0.663 0.843 -c "ctrDrvJnt()";
+        setParent ..;
+        rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
+            checkBox -label "Translate" -value 1 chtConnexion;
+            checkBox -label "Rotate" -value 0 chrConnexion;
+            checkBox -label "Move" -value 0 chMoveConnexion;
+
+
+        setParent ..;
+
+
+
+    showWindow Ribb_window;
+
+}
+
+proc CreateCurve(string $num) 
+{
+    string $tempcurve[]=`polyToCurve -form 2 -degree 3`;
+    string $newCurveName =`rename $tempcurve[0] ("tempCurve"+$num)`;
+
+}
+
+proc RibbFct(string $type) 
+{
+    // CREATE With the curve already created
+    $temcurve1="tempCurve01";
+    $temcurve2="tempCurve02";
+    string $loftSurface[] = `loft -ch 1 -u 1 -c 0 -ar 1 -d 1 -ss 1 -rn 0 -po 0 -rsn true $temcurve1 $temcurve2`;
+    string $middleCurve[] = `duplicateCurve -ch 0 -rn 0 -local 0 ($loftSurface[0] +".u[0.5]")`;
+    string $NameFinal;
+    $NameFinal =`textField -q -text textInput`;
+        //Rename And Sort//
+    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $middleCurve[0]`;
+    $temcurve1=`rename $temcurve1 ("Curve_"+$NameFinal+"_01")`;
+    $temcurve2=`rename $temcurve2 ("Curve_"+$NameFinal+"_02")`;
+    $middleCurve[0]=`rename $middleCurve[0] ("Curve_"+$NameFinal+"_Middle")`;
+
+    $loftSurface[0]=`rename $loftSurface[0] ("Loft_"+$NameFinal)`;
+    /* query dei nomi delle curve
+    if (`objExists $temcurve1` and `objExists $temcurve2`)
+    {
+
+    } 
+    */
+    select -r $middleCurve[0] $loftSurface[0];
+    string $curves[] = `ls -sl -long `;
+    string $curves02[] = `ls -sl`;
+
+    int $NumberOfCurves = `size($curves)`;
+    int $NumberOfJoints;
+    string $JointsSave[];
+    string $DrvJnt[];
+
+    $NumberOfJoints = `intField -q -v wp_jointOnCurves_window02_numOfJoint_second`;
+    string $name = `substitute ".*_" $curves[0] ""`;
+    
+
+
+
+
+    for ($j = 0; $j < $NumberOfJoints; $j++)
+    {
+        select -cl  ;
+        $JointsSave[$j]=`joint -name("temp_0"+$j)`;
+    }
+
+
+    select $curves[1];
+    createHair $NumberOfJoints 1 10 0 0 0 0 5 0 1 1 1;
+    string $nameRibbon = $curves02[1]+"*";
+    string $follicleName[] = `ls -type follicle $nameRibbon`;
+
+
+    //Delete Child BUT NOT WORKING ...
+    for ($fol in $follicleName) {
+        // Get a list of children of the parent object
+        $tempfol = `substitute "Shape" $fol ""`;
+
+        string $children[] = `listRelatives -c $tempfol`;
+        for ($c in $children){
+            if($c != $fol){
+              delete $c;
+            }
+
+        }
+
+    }
+
+    //Put the follicle at the good place 
+    string $command1= $follicleName[0]+".parameterU";
+    setAttr  $command1 1;
+    string $command2= $follicleName[$NumberOfJoints-1]+".parameterU";
+    setAttr  $command2 0;
+    for ($j = 1; $j < $NumberOfJoints-1; $j++)
+    { 
+        string $command= $follicleName[$j]+".parameterU";
+        float $num=(float($NumberOfJoints)-float($j)-1)/(float($NumberOfJoints)-1);
+        print("          " +$follicleName[$NumberOfJoints-$j]+"                First Name: " + $num );
+        setAttr  $command $num;
+    }
+
+    //Create the grp for the driven Jnts
+    $tempName01="Grp_DrvJnt_"+$NameFinal;
+    group -em -n $tempName01;
+    //Name the grp for the Follicl
+    string $tempfol01 = `substitute "Shape" $follicleName[0] ""`;
+    string $parentObject[] = `listRelatives -p $tempfol01`;
+    $tempName02="Grp_Follicles_"+$NameFinal;
+    rename $parentObject[0] $tempName02;
+    $grpRibb = `group -em -n ("Grp_RibbonFac_"+$NameFinal) ` ;
+
+    //RENAME THE JOINTS, Groupe,
+    for ($j = 0; $j < $NumberOfJoints; $j++)
+    {
+        int $jntsize=$NumberOfJoints-$j-1;
+        parent $JointsSave[$jntsize] $follicleName[$j];
+        string $valx=$JointsSave[$jntsize]+".translateX";
+        string $valy=$JointsSave[$jntsize]+".translateY";
+        string $valz=$JointsSave[$jntsize]+".translateZ";
+        setAttr $valx 0;
+        setAttr $valy 0;
+        setAttr $valz 0;
+        print("\n "+$JointsSave[$jntsize]);
+        $tempNameJnt= "Bind_"+$NameFinal+"_0"+$j;
+        $tempNameFol= "Fol_"+$NameFinal+"_0"+$j;
+        rename $JointsSave[$jntsize] $tempNameJnt;
+        select $follicleName[$j];
+        $tempfol = `substitute "Shape" $follicleName[$j] ""`;
+        print("\n "+$tempfol+"   "+$follicleName[$j]);
+        rename $tempfol $tempNameFol;
+        $JointsSave[$jntsize] = $tempNameJnt;
+        $follicleName[$j]= $tempNameFol;
+
+
+
+        //Dupplicate and Hook
+        select $tempNameJnt;
+        $tempNameJnt2= "DrvJnt_"+$NameFinal+"_0"+$j;
+        duplicate -name $tempNameJnt2;
+        $DrvJnt[$j] =$tempNameJnt2;
+        //Set Color and Radius
+        setAttr ($JointsSave[$j]+".radius") 0.5;          // Increase the joint radius
+        setAttr ($JointsSave[$j]+".overrideEnabled") 1;   // Enable color override
+        setAttr ($JointsSave[$j]+".overrideColor") 3;    // Set the color
+        setAttr ($DrvJnt[$j]+".radius") 1;          // Increase the joint radius
+        setAttr ($DrvJnt[$j]+".overrideEnabled") 1;   // Enable color override
+        setAttr ($DrvJnt[$j]+".overrideColor") 0;    // Set the color
+
+        parent -w $tempNameJnt2;
+        // Set the relative translation to 0
+
+        fctHook($JointsSave[$jntsize]);
+        fctHook($tempNameJnt2);
+        string $name01=$tempNameJnt2 + "_Offset";
+        parent $name01 $tempName01;
+
+
+    }
+
+    //Sort in one folder
+    parent $tempName01 $grpRibb;
+    parent $tempName02 $grpRibb;
+    parent $GrpConst $grpRibb;
+    parent $loftSurface[0] $grpRibb;
+    //DELETE THE OTHER STUFF 
+    string $HairSyst[] = `ls "hairSystem*"`;
+    //string $tempHairSyst = `substitute "Shape" $HairSyst[size($HairSyst)-1] ""`;
+    string $parentObject02[] = `listRelatives -p $HairSyst[size($HairSyst)-1]`;
+    delete $parentObject02[0];
+    string $pfxHair[] = `ls "pfxHair*"`;
+    string $parentObject03[] = `listRelatives -p $pfxHair[size($pfxHair)-1]`;
+    delete $parentObject03;
+    string $nucl[] = `ls "nucleus*"`;
+    delete $nucl[size($nucl)-1];
+
+
+    // Skin The DrvJnt to the loft
+    skinCluster -tsb $DrvJnt $curves02[1];
+
+
+
+}
+
+//HOOK
+
+//--------------------------------------------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------------------//
+//
+//		Ce script crÃ©Ã© un group offset
+//
+//		Fonctionne avec des selections multiples et conserve la hierarchie
+//
+//--------------------------------------------------------------------------------------------------------------------------------//
+//--------------------------------------------------------------------------------------------------------------------------------//
+
+proc fctHook(string $sel)
+{
+    string $selected[];
+    $selected[0] = $sel;
+
+    if (size ($selected) > 0)
+        {
+        
+            int $count = 0;
+            
+            do
+            {
+                string $offset = `group -em -n ($selected[$count] + "_Move")`;
+                string $parent = `firstParentOf ($selected[$count])`;
+                parentConstraint -w 1 $selected[$count]  $offset;
+                
+                if ($parent != "")
+                    {
+                        parent $offset $parent;
+                    }
+                    
+                delete ($offset+"_parentConstraint1");
+                parent $selected[$count] $offset;
+                string $temp01 = $offset +".useOutlinerColor";
+                string $temp02 = $offset+".outlinerColor";
+                setAttr  $temp01 1;
+                setAttr  $temp02 0.4 0.3 0.8;
+
+
+                //2nde Offset , Just copy the code up, Not Clean I know
+                string $offset2 = `group -em -n ($selected[$count] + "_Hook")`;
+                string $parent2 = `firstParentOf ($offset)`;
+                parentConstraint -w 1 $offset  $offset2;
+                
+                if ($parent2 != "")
+                    {
+                        parent $offset2 $parent2;
+                    }
+                    
+                delete ($offset2+"_parentConstraint1");
+                parent $offset $offset2;
+                string $temp03 = $offset2 +".useOutlinerColor";
+                string $temp04 = $offset2+".outlinerColor";
+                setAttr  $temp03 1;
+                setAttr  $temp04 1 0.5 0;
+
+
+
+                //3rd Offset , Just copy the code up, Not Clean I know
+                string $offset3 = `group -em -n ($selected[$count] + "_Offset")`;
+                string $parent3 = `firstParentOf ($offset2)`;
+                parentConstraint -w 1 $offset2  $offset3;
+                
+                if ($parent3 != "")
+                    {
+                        parent $offset3 $parent3;
+                    }
+                    
+                delete ($offset3+"_parentConstraint1");
+                parent $offset2 $offset3;
+                $count ++;
+
+            }
+            while (size ($selected) != $count);
+
+        }
+    else
+        {
+            error ("Rien n'est selectionnÃ©!\n");
+        }
+
+
+}
+
+//SELECTONNER UN CONTROLLER PUIS VOS RIVETS
+
+// Ce script Va copier la premiere selection 
+// et les parenter aux prochaines selections 
+// en leur mettant des offset
+
+//Crée Par Pierre
+proc ctrlOnRivet()
+{
+    string $selected[] = `ls -sl`;
+    string $curve =	`curve -d 1 -p 0 1 0 -p 0 0.92388 0.382683 -p 0 0.707107 0.707107 -p 0 0.382683 0.92388 -p 0 0 1 -p 0 -0.382683 0.92388 -p 0 -0.707107 0.707107 -p 0 -0.92388 0.382683 -p 0 -1 0 -p 0 -0.92388 -0.382683 -p 0 -0.707107 -0.707107 -p 0 -0.382683 -0.92388 -p 0 0 -1 -p 0 0.382683 -0.92388 -p 0 0.707107 -0.707107 -p 0 0.92388 -0.382683 -p 0 1 0 -p 0.382683 0.92388 0 -p 0.707107 0.707107 0 -p 0.92388 0.382683 0 -p 1 0 0 -p 0.92388 -0.382683 0 -p 0.707107 -0.707107 0 -p 0.382683 -0.92388 0 -p 0 -1 0 -p -0.382683 -0.92388 0 -p -0.707107 -0.707107 0 -p -0.92388 -0.382683 0 -p -1 0 0 -p -0.92388 0.382683 0 -p -0.707107 0.707107 0 -p -0.382683 0.92388 0 -p 0 1 0 -p 0 0.92388 -0.382683 -p 0 0.707107 -0.707107 -p 0 0.382683 -0.92388 -p 0 0 -1 -p -0.382683 0 -0.92388 -p -0.707107 0 -0.707107 -p -0.92388 0 -0.382683 -p -1 0 0 -p -0.92388 0 0.382683 -p -0.707107 0 0.707107 -p -0.382683 0 0.92388 -p 0 0 1 -p 0.382683 0 0.92388 -p 0.707107 0 0.707107 -p 0.92388 0 0.382683 -p 1 0 0 -p 0.92388 0 -0.382683 -p 0.707107 0 -0.707107 -p 0.382683 0 -0.92388 -p 0 0 -1 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -k 17 -k 18 -k 19 -k 20 -k 21 -k 22 -k 23 -k 24 -k 25 -k 26 -k 27 -k 28 -k 29 -k 30 -k 31 -k 32 -k 33 -k 34 -k 35 -k 36 -k 37 -k 38 -k 39 -k 40 -k 41 -k 42 -k 43 -k 44 -k 45 -k 46 -k 47 -k 48 -k 49 -k 50 -k 51 -k 52` ;
+    string $NameFinal;
+    $NameFinal =`textField -q -text textInput`;
+    $GrpRivet = `group -name ("Grp_Rivet_"+$NameFinal)`;
+    select $GrpRivet;
+    //Ce serait colle de vérifier si le 1er c est une curve et les autres des locators
+    //Je ne sais pas encore faire 
+
+    if (size ($selected) >= 0)
+        {
+        for ($i=0;$i<size($selected);$i++)
+        {
+            string $copy01[] = `duplicate $curve`;
+            string $copy=$copy01[0];
+            matchTransform -pos  $copy $selected[$i];
+
+            //Renommer la variable et le nom du CTRL
+            rename $copy ("CTRL_"+$selected[$i]);
+            $copy= "CTRL_"+$selected[$i];
+            
+
+            string $offset = `group -em -n ($copy + "_Move")`;
+            string $parent = `firstParentOf ($copy)`;
+            parentConstraint -w 1 $copy  $offset;
+            
+            if ($parent != "")
+                {
+                    parent $offset $parent;
+                }
+                
+            delete ($offset+"_parentConstraint1");
+            parent $copy $offset;
+            string $temp01 = $offset +".useOutlinerColor";
+            string $temp02 = $offset+".outlinerColor";
+            setAttr  $temp01 1;
+            setAttr  $temp02 0.4 0.3 0.8;
+
+
+        //2nde Offset , Just copy the code up, Not Clean I know
+            string $offset2 = `group -em -n ($copy + "_Offset")`;
+            string $parent2 = `firstParentOf ($offset)`;
+            parentConstraint -w 1 $offset  $offset2;
+            
+            if ($parent2 != "")
+                {
+                    parent $offset2 $parent2;
+                }
+                
+            delete ($offset2+"_parentConstraint1");
+            parent $offset $offset2;
+            pointConstraint $selected[$i] $offset;
+
+
+            // Put everything in a folder
+     
+            parent $selected[$i] $GrpRivet;
+        }
+
+    }
+    else
+    {
+        error ("You Need To select 2 things bg");
+    };
+	
+    delete $curve;
+}	
+
+proc ctrDrvJnt()
+{
+    int $cht = `checkBox -query -value chtConnexion`;
+    int $chr = `checkBox -query -value chrConnexion`;
+    int $chMove = `checkBox -query -value chMoveConnexion`;
+    string $move="";
+    if($chMove)
+    {
+        $move="_Move";
+    }
+    string $selected[] = `ls -sl`;
+    if(size($selected)%2 == 0 )
+    {    
+        if($cht)
+        {            
+            for($i=0;$i<size($selected);$i+=2)
+            { 
+                connectAttr($selected[$i]+".translate") ($selected[$i+1]+$move+".translate");
+            }
+        }
+        if($chr)
+        {   
+            for($i=0;$i<size($selected);$i+=2)
+            { 
+                connectAttr($selected[$i]+".rotate") ($selected[$i+1]+$move+".rotate");
+            }
+        }
+
+    }    
+    else
+    {
+        error ("You Need To select a pair number");
+    };
+
+}

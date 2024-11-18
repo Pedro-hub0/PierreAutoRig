@@ -235,7 +235,7 @@ def createBlend(speed,l,obj):
         if not cmds.attributeQuery(f'Zip_Avg', node=f'{Ctrl_Zip}', exists=True):
             cmds.addAttr(f'{Ctrl_Zip}', longName=f'Zip_Avg',attributeType='float', defaultValue=0.5,min=0,max=1,keyable=True)
         if not cmds.attributeQuery(f'Drop_Off', node=f'{Ctrl_Zip}', exists=True):
-            cmds.addAttr(f'{Ctrl_Zip}', longName=f'Drop_Off',attributeType='float', defaultValue=0,min=0,max=1,keyable=True)
+            cmds.addAttr(f'{Ctrl_Zip}', longName=f'Drop_Off',attributeType='float', defaultValue=0,keyable=True)
         #if not cmds.attributeQuery(f'Speed', node=f'{Ctrl_Zip}', exists=True):
         #    cmds.addAttr(f'{Ctrl_Zip}', longName=f'Speed',attributeType='float', defaultValue=sp,keyable=True)
                             
@@ -307,6 +307,7 @@ def createBlend(speed,l,obj):
             cmds.connectAttr(f'Riv_Up_0{i}.translate',f'{blendwn}.color2')
 
         #Connect to joints
+
         cmds.connectAttr(f'{blendup}.output',f'Bind_Zip_Lips_Dwn_0{i}_Move.translate')
         cmds.connectAttr(f'{blendwn}.output',f'Bind_Zip_Lips_Up_0{i}_Move.translate')
     
