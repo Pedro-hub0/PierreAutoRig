@@ -130,7 +130,7 @@ def createSpine(spineIk,spineFk,sz) :
         if i>1:
             cmds.parent(f'{Ctrl_Fk_Spine[i-1]}_Offset',Ctrl_Fk_Spine[i-2])
         """
-        Ctrl_Fk_Spine.append(cmds.circle(name=f'Ctrl_{FkJnts[i]}',nr=[1,0,0],radius=sz)[0])                 
+        Ctrl_Fk_Spine.append(cmds.circle(name=f'Ctrl_{FkJnts[i]}',nr=[0,1,0],radius=sz)[0])                 
         tools.parentshapeScript(Ctrl_Fk_Spine[i-1],FkJnts[i])
         
 

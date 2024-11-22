@@ -194,6 +194,7 @@ def CreateFollows():
     sides=['L','R']
     followElement=['CTRL_Root','CTRL_Torso']
     CTRL_Element=['Hand','Foot']
+    CTRL_Element_PV=['Arm','Leg']
     LastCtrlNeck=head.lastCTRLneck()
     flws=[]
     flws.append(FollowElement('Ctrl_Bind_Neck_01','CTRL_Torso'))
@@ -246,34 +247,37 @@ def CreateFollows():
                         else: x = 0
                         cmds.setAttr(f"{remapFollow}.value[{j}].value_FloatValue",x)
                         cmds.setAttr(f"{remapFollow}.value[{j}].value_Interp", 1)
-                        
-                    cmds.connectAttr(f'CTRL_{Ctrls}_{side}.Follow',f'{remapFollow}.inputValue')
-                    cmds.connectAttr(f'{remapFollow}.outValue',f'{tempCstr}.{followElement[i]}W{i}')
+
+                    if not cmds.listConnections(f'{remapFollow}.inputValue', source=True, destination=False):
+                        cmds.connectAttr(f'CTRL_{Ctrls}_{side}.Follow',f'{remapFollow}.inputValue')
+                        cmds.connectAttr(f'{remapFollow}.outValue',f'{tempCstr}.{followElement[i]}W{i}')
 
                 else:
                     print(f'You don t have a {followElement[i]} \n ')
 
-    ### Pole Vectors ####
+        ### Pole Vectors ####
             
         # Create Attribute
                 # Create Attribute
-        if cmds.objExists(f'Pv_Leg_{side}'):
-            if not cmds.attributeQuery(f'______', node=f'Pv_Leg_{side}', exists=True):
-                cmds.addAttr(f'Pv_Leg_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
-            if not cmds.attributeQuery(f'Global', node=f'Pv_Leg_{side}', exists=True):
-                cmds.addAttr(f'Pv_Leg_{side}', longName='Global', attributeType='float',min=0,max=1, defaultValue=1,keyable=True)
-        
-        else:
-            print(f'You don t have a Pv_Leg_{side} \n ')
-        # Create a Constraint 
-        if not cmds.objExists(f"Pv_Leg_{side}_Move_parentConstraint1.CTRL_Foot_{side}W0"):
-            tempCstr2=cmds.parentConstraint(f"CTRL_Foot_{side}",f'Pv_Leg_{side}_Move',maintainOffset=True)[0]
-        else:
-            tempCstr2=f"Pv_Leg_{side}_Move_parentConstraint1"
-        # Put Value Constraint
-        if cmds.objExists(tempCstr):
-            cmds.connectAttr(f'Pv_Leg_{side}.Global',f"Pv_Leg_{side}_Move_parentConstraint1.CTRL_Foot_{side}W0")
+        for i in range(0,len(CTRL_Element_PV)):
+            if cmds.objExists(f'Pv_{CTRL_Element_PV[i]}_{side}'):
+                if not cmds.attributeQuery(f'______', node=f'Pv_{CTRL_Element_PV[i]}_{side}', exists=True):
+                    cmds.addAttr(f'Pv_{CTRL_Element_PV[i]}_{side}', longName='______', attributeType='enum', enumName='_____', defaultValue=0,keyable=True,niceName="___")
+                if not cmds.attributeQuery(f'Global', node=f'Pv_{CTRL_Element_PV[i]}_{side}', exists=True):
+                    cmds.addAttr(f'Pv_{CTRL_Element_PV[i]}_{side}', longName='Global', attributeType='float',min=0,max=1, defaultValue=1,keyable=True)
             
+            else:
+                print(f'You don t have a Pv_{CTRL_Element_PV[i]}_{side} \n ')
+            # Create a Constraint 
+            if not cmds.objExists(f"Pv_{CTRL_Element_PV[i]}_{side}_Move_parentConstraint1.CTRL_{CTRL_Element[i]}_{side}W0"):
+                tempCstr2=cmds.parentConstraint(f"CTRL_{CTRL_Element[i]}_{side}",f'Pv_{CTRL_Element_PV[i]}_{side}_Move',maintainOffset=True)[0]
+            else:
+                tempCstr2=f"Pv_{CTRL_Element_PV[i]}_{side}_Move_parentConstraint1"
+            # Put Value Constraint
+            if cmds.objExists(tempCstr):
+                if not cmds.listConnections(f"Pv_{CTRL_Element_PV[i]}_{side}_Move_parentConstraint1.CTRL_{CTRL_Element[i]}_{side}W0", source=True, destination=False):
+                    cmds.connectAttr(f'Pv_{CTRL_Element_PV[i]}_{side}.Global',f"Pv_{CTRL_Element_PV[i]}_{side}_Move_parentConstraint1.CTRL_{CTRL_Element[i]}_{side}W0")
+                
 
 
 
@@ -338,5 +342,53 @@ class FollowElement:
     def __init__(self, follower, follow):
         self.follower = follower
         self.follow = follow
+def findType(var):
+    EnmuName=["Scene Up","Object Up","Object Rotation Up","Vector","Normal"]
+    FinalName=["scene","object","objectrotation","vector","normal"]
+    
+    for i in range(0,len(EnmuName)):
+        if var==EnmuName[i]:
+            return FinalName[i]
 
 
+
+def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
+    typeBrute=cmds.optionMenu(cbType, query=True, value=True)
+    vartype=findType(typeBrute)
+    objUp= cmds.textField(cbobjUp, query=True, text=True)
+
+    selObj = cmds.ls(selection=True)
+    nbrJnt=cmds.intField(cbnbjoint, query=True, value=True)
+    name=cmds.textField(cbName, query=True, text=True)
+    grp = cmds.group(empty=True, name=f'Grp_{name}')
+
+    # Attach the joint to the motion path
+    for i in range(0,nbrJnt):
+        # Create a joint
+        cmds.select(clear=True)
+        joint = cmds.joint(name=f"{name}")
+        motion_path_node = cmds.pathAnimation(joint, c=selObj[0], name=f"{name}_motionPath",                
+                fractionMode=True,
+                follow=True,
+                followAxis="x",
+                upAxis="y",
+                worldUpType=vartype,
+                worldUpVector=(0, 1, 0),
+                worldUpObject=objUp,
+                inverseUp=False,
+                inverseFront=False,
+                bank=False)
+
+        # Delete the keyframes on the uValue
+        cmds.cutKey(motion_path_node, attribute="uValue", clear=True)
+
+        # Set the joint at a specific position along the curve
+        # uValue ranges from 0 (start of curve) to 1 (end of curve)
+        position_on_curve = i*(1/(nbrJnt-1))  # Change this value to move the joint
+        cmds.setAttr(f"{motion_path_node}.uValue", position_on_curve)
+
+
+        # Optional: Configure front axis and up axis if needed
+        cmds.setAttr(f"{motion_path_node}.frontAxis", 0)  # X-axis
+        cmds.setAttr(f"{motion_path_node}.upAxis", 1)     # Y-axis
+        cmds.parent(joint,grp)

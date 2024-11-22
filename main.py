@@ -78,9 +78,6 @@ def create_window():
     cmds.button(label='Get Scale', command=lambda x:smallUsefulFct.GetDistLocScale(sizeCtrlArm),width=150)
     cmds.setParent('..')
 
-    cmds.separator(h=8)
-    cmds.button(label='Squash And Stretch', command=lambda x:stretch.Stretchfct(),width=120)
-    cmds.button(label='Follows', command=lambda x:tools.CreateFollows(),width=120)
 
     cmds.separator(h=8)
     # Crée une frame layout (volet repliable)
@@ -94,20 +91,25 @@ def create_window():
     cmds.text(label="Fk", font = "boldLabelFont" , w = 50, align = "left")
     fullspineFk = cmds.intField(value=3,width=75)
     cmds.setParent('..')
+    
 
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[50,25,75])
     cmds.text(label="Neck", font = "boldLabelFont" , w = 50, align = "left")
     cmds.text(label="Fk", font = "boldLabelFont" , w = 50, align = "left")
     fullneckFk = cmds.intField(value=1,width=75)
     cmds.setParent('..')
-
+    cb_RibbonFullAuto= cmds.checkBox(label="Ribbons Export",v=False)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cmds.button(label='Create Locs', command=lambda x:createLocsFulllAuto(sizeCtrlArm),width=100)
-    cmds.button(label='Create Skeleton', command=lambda x:createSkeleton(sizeCtrlArm,fullspineIk,fullspineFk,fullneckFk),width=100)
+    cmds.button(label='Create Skeleton', command=lambda x:createSkeleton(sizeCtrlArm,fullspineIk,fullspineFk,fullneckFk,cb_RibbonFullAuto),width=100)
     cmds.setParent('..') 
     cmds.setParent('..')
     cmds.separator(h=8)
     cmds.frameLayout(label='Step By Step', collapsable=True, collapse=True)
+    cmds.separator(h=8)
+    cmds.button(label='Squash And Stretch', command=lambda x:stretch.Stretchfct(),width=120)
+    cmds.button(label='Follows', command=lambda x:tools.CreateFollows(),width=120)
+
     cmds.separator(h=10)
     cmds.frameLayout(label='Spine', collapsable=True, collapse=True)
     cmds.separator(h=8)
@@ -237,8 +239,7 @@ def create_window():
 
     cmds.frameLayout(label='Neck', collapsable=True, collapse=True)
     cmds.separator(h=8)
-    cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(),width=100)
-
+    cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(),width=100) 
     #cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
     #cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
@@ -317,8 +318,38 @@ def create_window():
     cmds.button(label='Lock/Unlock Translate', command=lambda x:tools.lockUnlock(cbMove,cbaxes,cb_loc_hide),width=100)
 
     cmds.setParent('..')
+
+
     cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
     cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("Bind"),width=300)
+    cmds.frameLayout(label='JOINT PATH CONSTRAINTS', collapsable=True, collapse=True,w = 300)
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cnNamePath = cmds.textField(placeholderText="Name",text="Bind_Name",w=150)
+    cnNumberPath = cmds.intField(value=5,width=75)
+    cmds.setParent('..')    
+    # Create an option menu (enum dropdown)
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
+    cbObjUp=cmds.textField(placeholderText="CTRL UP",w=150,enable=False)
+    enum_dropdown = cmds.optionMenu(label="World Up Type", changeCommand=lambda *args:update_text_field(enum_dropdown,cbObjUp,*args))
+    cmds.menuItem(label="Scene Up")
+    cmds.menuItem(label="Object Up")
+    cmds.menuItem(label="Object Rotation Up")
+    cmds.menuItem(label="Vector")
+    cmds.menuItem(label="Normal")
+
+
+
+    cmds.setParent('..')    
+
+    cmds.button(label='Joint Path Constraints', command=lambda x:tools.PathJointContraint(cnNumberPath,cnNamePath,enum_dropdown,cbObjUp),width=150)
+
+    cmds.setParent('..')
+    cmds.separator(h=10)
+   
+   
+    cmds.setParent('..')
+
+
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150, 150])
     cmds.button(label=' LRA On ', command=lambda x:tools.toggleRotateVisibilityFct(True),width=150)
     cmds.button(label=' LRA Off ', command=lambda x:tools.toggleRotateVisibilityFct(False),width=150)
@@ -347,7 +378,8 @@ def createLocsFulllAuto(sz):
     head.CreatelocHeadStructure(True)
     head.LocNeck()
 
-def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
+def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck,cbRib):
+    cb_Rib=cmds.checkBox(cbRib, query=True, value=True)
     #Spine
     spine.createSpine(cbIkSpine,cbFkSpine,sz)
 
@@ -420,9 +452,10 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck):
     head.CtrlHeadStructure(sz)
 
     #Ribbon 
-    if smallUsefulFct.importFileFromScene('Ribbon_MatX'):
-        cb_attach=[True,True,True,True,True,True,True,True]
-        ribbon.AttachRib(cb_attach)
+    if cb_Rib:
+        if smallUsefulFct.importFileFromScene('Ribbon_MatX'):
+            cb_attach=[True,True,True,True,True,True,True,True]
+            ribbon.AttachRib(cb_attach)
 
         
     #General 
@@ -439,3 +472,13 @@ def set_color(color):
     global selected_color
     selected_color = color
 
+# Callback function to lock/unlock the text field
+def update_text_field(enum_dropdown,cbObjUp,*arg):
+    # Get the selected option
+    selected = cmds.optionMenu(enum_dropdown, query=True, value=True)
+
+    # Lock or unlock the text field based on selection
+    if selected in("Object Up","Object Rotation Up"):
+        cmds.textField(cbObjUp, edit=True, enable=True)
+    else :
+        cmds.textField(cbObjUp, edit=True, enable=False)
