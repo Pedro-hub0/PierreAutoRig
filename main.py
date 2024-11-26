@@ -79,6 +79,7 @@ def create_window():
     cmds.setParent('..')
 
 
+    ########################### FULL AUTO ##############################
     cmds.separator(h=8)
     # Crée une frame layout (volet repliable)
     cmds.frameLayout(label='FULL AUTO', collapsable=True, collapse=True)
@@ -99,12 +100,20 @@ def create_window():
     fullneckFk = cmds.intField(value=1,width=75)
     cmds.setParent('..')
     cb_RibbonFullAuto= cmds.checkBox(label="Ribbons Export",v=False)
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100, 100,100])
+    textToe=cmds.text(label="Toes Number", font = "boldLabelFont" , w = 50, align = "left")
+    cb_ToeNumber=cmds.intField(value=1,width=100)
+    cb_Toe=cmds.checkBox(label="Toe",changeCommand=lambda *args:update_text_field2(textToe,cb_ToeNumber,cb_Toe,*args))
+    cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Locs', command=lambda x:createLocsFulllAuto(sizeCtrlArm),width=100)
-    cmds.button(label='Create Skeleton', command=lambda x:createSkeleton(sizeCtrlArm,fullspineIk,fullspineFk,fullneckFk,cb_RibbonFullAuto),width=100)
+    cmds.button(label='Create Locs', command=lambda x:createLocsFulllAuto(sizeCtrlArm,cb_ToeNumber,cb_Toe),width=100)
+    cmds.button(label='Create Skeleton', command=lambda x:createSkeleton(sizeCtrlArm,fullspineIk,fullspineFk,fullneckFk,cb_RibbonFullAuto,cb_ToeNumber,cb_Toe),width=100)
     cmds.setParent('..') 
     cmds.setParent('..')
-    cmds.separator(h=8)
+
+    ########################### STEP BY STEP ##############################
+
+    cmds.separator(h=5)
     cmds.frameLayout(label='Step By Step', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.button(label='Squash And Stretch', command=lambda x:stretch.Stretchfct(),width=120)
@@ -155,10 +164,18 @@ def create_window():
     cmds.separator(h=8)
     cmds.text(label="Creates locs Then place it", font = "boldLabelFont" , w = 50, align = "left")
     cmds.separator(h=3)
-    cmds.rowLayout(numberOfColumns=3, columnWidth2=[100, 100])
-    cmds.button(label=' Creates Locs', command=lambda x:foot.createLocs(),width=100)
-    cmds.button(label=' Organise Locs', command=lambda x:foot.OrganiseLocs(sizeCtrlArm),width=100)
-    cmds.button(label='  Nodale', command=lambda x:foot.ConnectFoot(),width=100)
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100, 100,100])
+    textToe=cmds.text(label="Toes Number", font = "boldLabelFont" , w = 50, align = "left")
+    cb_ToeNumber=cmds.intField(value=1,width=100)
+    cb_Toe=cmds.checkBox(label="Toe",changeCommand=lambda *args:update_text_field2(textToe,cb_ToeNumber,cb_Toe,*args))
+    cmds.setParent('..')
+    cmds.text(textToe, edit=True, enable=False)
+    cmds.intField(cb_ToeNumber,value=5, edit=True, enable=False)
+
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[80, 100,100])
+    cmds.button(label=' Creates Locs', command=lambda x:foot.createLocs(cb_ToeNumber,cb_Toe),width=80)
+    cmds.button(label=' Organise Locs', command=lambda x:foot.OrganiseLocs(sizeCtrlArm,cb_ToeNumber,cb_Toe),width=110)
+    cmds.button(label='  Nodale', command=lambda x:foot.ConnectFoot(),width=80)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[75,75,150])
     cb_jnt_hand= cmds.checkBox(label="Organise")
@@ -264,10 +281,10 @@ def create_window():
     cmds.setParent('..')
     cmds.setParent('..')
 
-    cmds.separator(h=8)
+    cmds.separator(h=12)
 
 
-
+    ########################### TOOLS ##############################
 
     cmds.setParent('..')
 
@@ -345,17 +362,15 @@ def create_window():
 
     cmds.setParent('..')
     cmds.separator(h=10)
-   
+    cmds.button(label='Scale', command=lambda x:tools.scaleCstr(),width=150)
    
     cmds.setParent('..')
-
-
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150, 150])
     cmds.button(label=' LRA On ', command=lambda x:tools.toggleRotateVisibilityFct(True),width=150)
     cmds.button(label=' LRA Off ', command=lambda x:tools.toggleRotateVisibilityFct(False),width=150)
     cmds.setParent('..')
     cmds.text(label=" Match Ik/Fk ", font = "boldLabelFont" , w = 300, align = "left")
-    cmds.separator(h=5)
+    cmds.separator(h=20)
     # Create a text field
     txt_mamespace = cmds.textField(placeholderText="Namespace")
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[150, 75,75])
@@ -366,7 +381,7 @@ def create_window():
     cmds.showWindow(window_name)
 
 
-def createLocsFulllAuto(sz):
+def createLocsFulllAuto(sz,cbnbToe,CbToe):
     spine.creatLocsSpine()
     armLeg.createJnts(sz)
     cmds.select("Arm_L")
@@ -374,11 +389,11 @@ def createLocsFulllAuto(sz):
     cmds.select("Arm_L")
     hand.locHand(sz)
     cmds.select("Leg_L")
-    foot.createLocs()
+    foot.createLocs(cbnbToe,CbToe)
     head.CreatelocHeadStructure(True)
     head.LocNeck()
 
-def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck,cbRib):
+def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck,cbRib,cbnbToe,CbToe):
     cb_Rib=cmds.checkBox(cbRib, query=True, value=True)
     #Spine
     spine.createSpine(cbIkSpine,cbFkSpine,sz)
@@ -436,7 +451,7 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck,cbRib):
     
     #Foot 
     cmds.select("CTRL_IkFk_Leg_L")
-    foot.OrganiseLocs(sz)
+    foot.OrganiseLocs(sz,cbnbToe,CbToe)
     cmds.select("CTRL_IkFk_Leg_L")
     foot.ConnectFoot()
     cmds.select("CTRL_IkFk_Leg_L")
@@ -482,3 +497,12 @@ def update_text_field(enum_dropdown,cbObjUp,*arg):
         cmds.textField(cbObjUp, edit=True, enable=True)
     else :
         cmds.textField(cbObjUp, edit=True, enable=False)
+
+def update_text_field2(obj1,obj2,cbObjUp,*arg):
+    is_checked = cmds.checkBox(cbObjUp, query=True, value=True)
+    if is_checked:
+        cmds.text(obj1, edit=True, enable=True)
+        cmds.intField(obj2, edit=True, enable=True)
+    else:
+        cmds.text(obj1, edit=True, enable=False)
+        cmds.intField(obj2, edit=True, enable=False)

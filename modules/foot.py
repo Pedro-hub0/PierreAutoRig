@@ -10,13 +10,25 @@ importlib.reload(smallUsefulFct)
 #     FONCTIONS FOOT        #
 #############################
 
-def createLocs():
+def createLocs(cb_toeNumber,cb_Toe):
     selObj = cmds.ls(selection=True)
+    isToe=cmds.checkBox(cb_Toe, query=True, value=True)
+    toeNumber=cmds.intField(cb_toeNumber, query=True, value=True)
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")
     side=selObj[0][-1]
+    locator_names = ["Loc_Heel_"+side, "Loc_Ball_"+side,"Loc_Bank_Int_"+side,"Loc_Bank_Ext_"+side]
+
     #initialise names (can be optimised because it's created in 2 def)
-    locator_names = ["Loc_Heel_"+side, "Loc_Ball_"+side, "Loc_Toe_"+side,"Loc_Bank_Int_"+side,"Loc_Bank_Ext_"+side]
+   
+    locator_names.append(f"Loc_Toe_{side}")
+    if isToe:
+        for i in range(0,toeNumber):
+            locator_names.append(f"Loc_Toe_{i}_Start_{side}")
+            locator_names.append(f"Loc_Toe_{i}_Mid_{side}")
+            locator_names.append(f"Loc_Toe_{i}_End_{side}")
+    
+    
     folder_names = ["Pivot_Ball_"+side, "Pivot_Toe_"+side, "Pivot_Toe_"+side+"_Offset"]
     for name in locator_names:
         cmds.spaceLocator(name=name)[0]
@@ -29,11 +41,23 @@ def createLocs():
         cmds.parent(locator_names,f"Grp_temp_Locs_Foot_{side}")
         cmds.parent(folder_names,f"Grp_temp_Locs_Foot_{side}")
 
+    if isToe:
+        limit=(len(locator_names))-(toeNumber*3)
+        i=len(locator_names)-1
+        y=1
+        while limit<i:
+            cmds.parent(locator_names[i],locator_names[i-1])
+            if y%2==0:
+                i=i-1
+            i-=1
+            y+=1
 
 
-def OrganiseLocs(sz):
+def OrganiseLocs(sz,cb_ToeNumber,cb_Toe):
 
     selObj = cmds.ls(selection=True)
+    isToe=cmds.checkBox(cb_Toe, query=True, value=True)
+    toeNumber=cmds.intField(cb_ToeNumber, query=True, value=True)
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")
     side=selObj[0][-1]
@@ -47,44 +71,110 @@ def OrganiseLocs(sz):
     jnt_names=["Bind_Foot_"+side,"Bind_Ball_"+side,"Bind_Toe_"+side]
     jnts=[]
     FkCtrl=[]
+    LocsToe=[]
+    iks=[]
     count=0
     size=smallUsefulFct.GetDistLocScale(sz)
+
+    ##INITIALISE TOES
+    if isToe:
+        for i in range(0,toeNumber):
+            LocsToe.append(f"Loc_Toe_{i}_Start_{side}")
+            LocsToe.append(f"Loc_Toe_{i}_Mid_{side}")
+            LocsToe.append(f"Loc_Toe_{i}_End_{side}")
+
+
 
     #Create Joints IKs Foot
     tr_Ankle = cmds.xform(f'DrvJnt_Ankle_{side}', query=True, translation=True, worldSpace=True)
     tr_Ball = cmds.xform(f'{loc_names[2]}', query=True, translation=True, worldSpace=True)
-    tr_Toe = cmds.xform(f'{loc_names[1]}', query=True, translation=True, worldSpace=True)
     cmds.select(clear=True)
     jnts.append(cmds.joint(n=f'{jnt_names[0]}',p=tr_Ankle))
     jnts.append(cmds.joint(n=f'{jnt_names[1]}',p=tr_Ball))
-    jnts.append(cmds.joint(n=f'{jnt_names[2]}',p=tr_Toe))
+
+    
+    if not isToe:
+        tr_Toe = cmds.xform(f'{loc_names[1]}', query=True, translation=True, worldSpace=True)
+        jnts.append(cmds.joint(n=f'{jnt_names[2]}',p=tr_Toe))
+    else:
+        tr_Toe=[]
+        y=1
+        for i in range(0,toeNumber*3):
+            tempTrToe=cmds.xform(f'{LocsToe[i]}', query=True, translation=True, worldSpace=True)
+            tr_Toe.append(tempTrToe)
+            tempJnt=cmds.joint(n=f'Bind_{"_".join(LocsToe[i].split("_")[1:])}',p=tempTrToe)
+            jnts.append(tempJnt)
+            if y%3==0:
+                cmds.select(jnt_names[1])
+            y+=1
+        
+    
     cmds.select(clear=True)
     smallUsefulFct.move(jnts[0])
-
+    DistanceRepere=smallUsefulFct.getDistBetweenJnts(jnts[len(jnts)-1],jnts[len(jnts)-2])
     #Orient    joint -e  -oj xyz -secondaryAxisOrient yup -ch -zso;
-    cmds.joint(f'{jnts[0]}',e=True, oj='xyz', sao='yup', ch=True, zso=True)
-    cmds.joint(f'{jnts[len(jnts)-1]}',e=True, oj='none', ch=True, zso=True)     
+    cmds.joint(jnts[0],e=True, oj='xyz', sao='yup', ch=True, zso=True)
+    if not isToe:
+        cmds.joint(f'{jnts[len(jnts)-1]}',e=True, oj='none', ch=True, zso=True) 
+    else:
+        for obj in jnts:
+            if  obj.split("_")[-1]=="End":
+                cmds.joint(f'{obj}',e=True, oj='none', ch=True, zso=True) 
 
     #Create Joints FKs Foot
     FkJnts=cmds.duplicate(jnt_names[0], rc=True)
     i=0
     while i<len(FkJnts):
-        cmds.rename(FkJnts[i], fk_names[i])
-        FkJnts[i]= fk_names[i]
+        cmds.rename(FkJnts[i], f'Fk_{"_".join(jnts[i].split("_")[1:])}')
+        FkJnts[i]=  f'Fk_{"_".join(jnts[i].split("_")[1:])}'
         i+=1
     smallUsefulFct.move(FkJnts[0])
 
+
+
     #Iks
-    cmds.ikHandle(startJoint=jnts[0], endEffector=jnts[1], solver='ikRPsolver', name=f'{ik_names[2]}')[0]
-    cmds.ikHandle(startJoint=jnts[1], endEffector=jnts[2], solver='ikRPsolver', name=f'{ik_names[0]}')[0]
+    iks.append(cmds.ikHandle(startJoint=jnts[0], endEffector=jnts[1], solver='ikRPsolver', name=f'{ik_names[2]}')[0])
+    if not isToe:
+        iks.append(cmds.ikHandle(startJoint=jnts[1], endEffector=jnts[2], solver='ikRPsolver', name=f'{ik_names[0]}')[0])
+    else:
+
+        grpBallsIks=cmds.group(empty=True, name=f'grp_Balls_Iks')
+        grpToesIks=cmds.group(empty=True, name=f'grp_Toes_Iks')
+        y=0
+        for i in range(0,len(jnts)):
+            if jnts[i].split("_")[-2] in ["Start"]: 
+                tempik1=cmds.ikHandle(startJoint=jnt_names[1], endEffector=jnts[i], solver='ikRPsolver', name=f'ikHandle_{jnt_names[1]}_Toe{i}')[0]
+                tempik2=cmds.ikHandle(startJoint=jnts[i], endEffector=jnts[i+2], solver='ikRPsolver', name=f'ikHandle_{jnts[i]}')[0]
+                iks.append(tempik1)
+                cmds.parent(tempik1,grpBallsIks)
+                iks.append(tempik2)
+                cmds.parent(tempik2,grpToesIks)
+
+
+            """  if jnts[i].split("_")[-2] in ["Mid"]:   
+                TranslatePV = cmds.xform(jnts[i], q=True, t=True, ws=True)
+                CTRLPv=cmds.circle(name=f'CTRL_PV_Toe_{y}_{side}',radius=DistanceRepere,nr=[1,0,0])[0]
+                smallUsefulFct.set_curve_color(CTRLPv,9)
+                cmds.xform(CTRLPv, t=TranslatePV, ws=True)
+                cmds.poleVectorConstraint(CTRLPv,tempik1)
+                cmds.pointConstraint(tempik1,f'CTRL_Foot_{side}')
+                smallUsefulFct.move2(CTRLPv)
+
+                y+=1"""
 
     #CTRL FKs
-    FkCtrl.append(cmds.circle(name=f'CTRL_Fk_Ball_{side}',radius=size,nr=[1,0,0])[0])
-    FkCtrl.append(cmds.circle(name=f'CTRL_Fk_Toe_{side}',radius=size,nr=[1,0,0])[0])
+    if not isToe:
+        FkCtrl.append(cmds.circle(name=f'CTRL_Fk_Ball_{side}',radius=size,nr=[1,0,0])[0])
+        FkCtrl.append(cmds.circle(name=f'CTRL_Fk_Toe_{side}',radius=size,nr=[1,0,0])[0])
+    else:
+        for fk in FkJnts:
+            if fk != f"Fk_Foot_{side}":
+                FkCtrl.append(cmds.circle(name=f'CTRL_{fk}',radius=size,nr=[1,0,0])[0])
+
 
     i=0
-    #Fk Controller -- Move and do the hierarchy --
 
+    #Fk Controller -- Move and do the hierarchy --
     while i<len(FkCtrl):
         TranslateJnt = cmds.xform(FkJnts[i+1], q=True, t=True, ws=True)
         RotationJnt = cmds.xform(FkJnts[i+1], query=True, rotation=True, worldSpace=True)
@@ -93,6 +183,10 @@ def OrganiseLocs(sz):
         smallUsefulFct.offset(FkCtrl[i])
         if i>0:
             cmds.parent(f'{FkCtrl[i]}_Offset',FkCtrl[i-1])
+        if isToe:
+            if jnts[i].split("_")[-2] in ["Start"]:
+                cmds.parent(f'{FkCtrl[i]}_Offset',FkJnts[0])
+
         i+=1
 
     #Parents Chains
@@ -107,7 +201,7 @@ def OrganiseLocs(sz):
 
     
     #PairBlend
-    MyPbFct("Foot",side,f'CTRL_IkFk_Leg_{side}',jnt_names,fk_names)
+    MyPbFct("Foot",side,f'CTRL_IkFk_Leg_{side}',jnts,FkJnts,iks)
     #Parents Locs
     while count<len(loc_names)-1:
         if cmds.objExists(loc_names[count]) and cmds.objExists(loc_names[count+1]):
@@ -117,6 +211,16 @@ def OrganiseLocs(sz):
             print("marche pas ")
             break
 
+    #CTRL Ik Toes
+    if isToe:
+        ikToes=cmds.listRelatives(grpToesIks, allDescendents=True)
+        for ik in ikToes:
+            TranslateIk = cmds.xform(ik, q=True, t=True, ws=True)
+            CTRLIk=cmds.circle(name=f'CTRL_{ik}',radius=DistanceRepere,nr=[1,0,0])[0]
+            smallUsefulFct.set_curve_color(CTRLIk,9)
+            cmds.xform(CTRLIk, t=TranslateIk, ws=True)
+            cmds.parentConstraint(CTRLIk,ik)
+            smallUsefulFct.move2(CTRLIk)
 
 
 
@@ -130,7 +234,9 @@ def OrganiseLocs(sz):
     if cmds.objExists(folder_names[0]) and cmds.objExists(loc_names[0]):
         cmds.xform(folder_names[0], translation=tr_Ball, worldSpace=True)
         cmds.parent(folder_names[0], loc_names[0])
-
+    if isToe:
+        cmds.parent(grpBallsIks,folder_names[1])
+        cmds.parent(grpToesIks,folder_names[1])
     """
     for n in loc_names:
         if cmds.objExists(n):
@@ -142,6 +248,7 @@ def OrganiseLocs(sz):
         cmds.parent(ik_names[2], loc_names[0])
     if cmds.objExists(ik_names[0]) and cmds.objExists(folder_names[1]):
         cmds.parent(ik_names[0], folder_names[1])
+
     if cmds.objExists(ik_names[1]) and cmds.objExists(folder_names[0]):
         cmds.parent(ik_names[1], folder_names[0])
 
@@ -341,10 +448,10 @@ def mirorFeet():
 ###PAIR BLEND (Fil Rouge Code)####
 ###################################
 
-def MyPbFct(ob,side,Ctrl,ik,fk):
+def MyPbFct(ob,side,Ctrl,ik,fk,iks):
     i=0
     #CONNECTIONS PAIR BLEND
-    while i < 3:
+    while i < len(fk):
         # Select the object
         PBname = "pairBlend_" + ik[i] + "_" + fk[i]
         pair_blend_node = cmds.createNode("pairBlend", name=PBname)
@@ -355,41 +462,21 @@ def MyPbFct(ob,side,Ctrl,ik,fk):
         cmds.connectAttr(f'{pair_blend_node}.outRotate',ik[i]+ ".rotate")
         cmds.connectAttr(Ctrl+".Switch_Ik_Fk",pair_blend_node +".weight")
         i=i+1
-    if ob == "Arm":
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"Ik_{ob}_{side}.ikBlend")
-        reverse_node = cmds.createNode('reverse', name=f'Rev_{ob}_{side}_IkFk')
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"{reverse_node}.inputX")
-        cmds.connectAttr(f"{Ctrl}.Switch_Ik_Fk",f"Pv_{ob}_{side}.visibility")
-        cmds.connectAttr(f"{Ctrl}.Switch_Ik_Fk",f"DrvJnt_Shoulder_{side}.visibility")
-        cmds.setAttr(f"Ik_{ob}_{side}.visibility",0)
-        cmds.connectAttr(f"{reverse_node}.outputX",f"Fk_Shoulder_{side}.visibility")
-  
-    if ob == "Leg":
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"Ik_{ob}_{side}.ikBlend")
-        reverse_node = cmds.createNode('reverse', name=f'Rev_{ob}_{side}_IkFk')
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"{reverse_node}.inputX")
-        cmds.connectAttr(f"{Ctrl}.Switch_Ik_Fk",f"Pv_{ob}_{side}.visibility")
-        cmds.connectAttr(f"{Ctrl}.Switch_Ik_Fk",f"DrvJnt_{ob}_{side}.visibility")
-        cmds.setAttr(f"Ik_{ob}_{side}.visibility",0)
+
+
+    for ikhandle in iks:
+        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"{ikhandle}.ikBlend")
+
+
+    cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"Bind_{ob}_{side}.visibility")
+    reverse_node = f'Rev_Leg_{side}_IkFk'
+
+    conn=cmds.listConnections(f"CTRL_{ob}_{side}.visibility")
+    if cmds.objExists(reverse_node):
         cmds.connectAttr(f"{reverse_node}.outputX",f"Fk_{ob}_{side}.visibility")
-    
-    if ob == "Foot":
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"Ik_Toe_{side}.ikBlend")
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"Ik_Ball_{side}.ikBlend")
-        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"Bind_{ob}_{side}.visibility")
-        reverse_node = f'Rev_Leg_{side}_IkFk'
-        conn=cmds.listConnections(f"CTRL_{ob}_{side}.visibility")
-        if cmds.objExists(reverse_node):
-            cmds.connectAttr(f"{reverse_node}.outputX",f"Fk_{ob}_{side}.visibility")
-        if not conn:
-            cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"CTRL_{ob}_{side}.visibility")
-   #Pair Blend BindHand
-    if ob == "Arm":
-        if f'Bind_Hand_{side}':
-            pB_Bind = cmds.createNode("pairBlend", name=f'PB_Hand_{side}')
-            cmds.connectAttr(fk[2] + ".rotate",pB_Bind + ".inRotate1")
-            cmds.connectAttr(pB_Bind +".outRotate",f'Bind_Hand_{side}.rotate')
-            cmds.connectAttr(Ctrl+".Switch_Ik_Fk",pB_Bind + ".weight")
+    if not conn:
+        cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"CTRL_{ob}_{side}.visibility")
+
 
 
 def mirorFoot(cb_jnt,cb_ctrl,sizeCtrlArm):
