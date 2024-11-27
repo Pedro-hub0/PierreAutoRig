@@ -34,8 +34,3 @@ def CreateGlobal(sz):
     #Ctrl_Global_Ribbon_01_Shoulder_L
 
 
-def scaleCstr():
-    selObj = cmds.ls(selection=True)
-    for i in range(1,len(selObj)):
-        if cmds.objExists(f'{selObj}'):
-            cmds.scaleConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
