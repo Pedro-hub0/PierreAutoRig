@@ -20,7 +20,8 @@ def locClavicule():
     return
 
 
-def createClavicule():
+def createClavicule(size):
+    sz=smallUsefulFct.GetDistLocScale(size)
     selObj = cmds.ls(selection=True)
     side=selObj[0][-1]
     if len(selObj) <1:
@@ -53,7 +54,7 @@ def createClavicule():
     cmds.joint(f'Bind_Clavicule_End_{side}', e=True, oj='none', ch=True, zso=True)
 
     ##Create Clavicule
-    CtrlClav=cmds.circle(name=f'CTRL_Clavicle_{side}',nr=[0,0,1])[0]
+    CtrlClav=cmds.circle(name=f'CTRL_Clavicle_{side}',radius=sz,nr=[0,0,1])[0]
     TranslateJnt = cmds.xform(f'Bind_Clavicule_01_{side}', q=True, t=True, ws=True)
     smallUsefulFct.set_curve_color(CtrlClav,28)
     cmds.xform(CtrlClav, t=TranslateJnt)
@@ -108,7 +109,7 @@ def createClavicule():
     return
 
 
-def mirorClav(cb_jnt_clav):
+def mirorClav(cb_jnt_clav,size):
     cb_jnt_val=True
     if cb_jnt_clav!=True:
         cb_jnt_val = cmds.checkBox(cb_jnt_clav, query=True, value=True)
@@ -164,4 +165,4 @@ def mirorClav(cb_jnt_clav):
     #Use the last codes
     if cb_jnt_val:
         cmds.select(f"CTRL_IkFk_Arm_{otherside}")
-        createClavicule()
+        createClavicule(size)

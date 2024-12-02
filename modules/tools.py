@@ -328,6 +328,9 @@ def CtrlParentCreate(cbcstr):
     for sel in selObj:
         Ctrl=cmds.circle(name=f'Ctrl_{sel}',nr=[1,0,0],radius=2)[0]     
         tr_Sel=cmds.xform(sel,translation=True, query=True, worldSpace=True)
+        ro_Sel=cmds.xform(sel,rotation=True, query=True, worldSpace=True)
+        cmds.xform(Ctrl, t=tr_Sel, ro=ro_Sel, ws=True)
+
         cmds.xform(Ctrl,translation=tr_Sel, worldSpace=True)             
         if checkboxs[0]:
             cmds.parentConstraint(Ctrl,sel, maintainOffset=True, weight=1)
@@ -393,8 +396,15 @@ def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
         cmds.setAttr(f"{motion_path_node}.upAxis", 1)     # Y-axis
         cmds.parent(joint,grp)
 
-def scaleCstr():
+def Cstr(type):
     selObj = cmds.ls(selection=True)
     for i in range(1,len(selObj)):
         if cmds.objExists(f'{selObj[i]}'):
-            cmds.scaleConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+            if type == "Scale":
+                cmds.scaleConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+            if type == "Parent":
+                cmds.parentConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+            if type == "Point":
+                cmds.pointConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+            if type == "Orient":
+                cmds.orientConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)

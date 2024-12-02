@@ -57,7 +57,8 @@ def createHand():
         #joint -e  -oj xyz -secondaryAxisOrient zup -ch -zso; 
             cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='zup', ch=True, zso=True)
         else:
-            cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='xup', ch=True, zso=True)
+            cmds.joint(f'Bind_{f}_01_{side}',e=True, oj='xyz', sao='yup', ch=True, zso=True)
+        
         cmds.joint(f'Bind_{f}_04_{side}',e=True, oj='none', ch=True, zso=True)     
     #Parent Controllers
     #cmds.delete(f'Loc_Hand_{side}')
@@ -71,7 +72,7 @@ def createHand():
 
 def ctrlHand(sz):
     #Create Controllers + Move
-    sz=cmds.intField(sz, query=True, value=True)
+    sz=smallUsefulFct.GetDistLocScale(sz)/2
     selObj = cmds.ls(selection=True)
     if len(selObj) <1:
         raise ValueError("You need to select something which finish by L or R ")

@@ -74,10 +74,11 @@ proc Ribb_window()
         setParent ..;
                 // text infield "Curve Creation"
         text -label "" -h 6;	
-        rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
+        rowColumnLayout -numberOfColumns 3 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
         //Select first Ctrl/ Drv/ Ctlr/Ctrl
             text -label "Connect Ctrl DrvJnt";
-            button -label "Connect" -bgc 0.675 0.663 0.843 -c "ctrDrvJnt()";
+            button -label "Connect mod 2" -bgc 0.675 0.663 0.843 -c "ctrDrvJnt()";
+            button -label "Connect 1 All" -bgc 0.675 0.663 0.843 -c "connectAll()";
         setParent ..;
         rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
             checkBox -label "Translate" -value 1 chtConnexion;
@@ -423,6 +424,33 @@ proc ctrlOnRivet()
 	
     delete $curve;
 }	
+proc connectAll()
+{
+    int $cht = `checkBox -query -value chtConnexion`;
+    int $chr = `checkBox -query -value chrConnexion`;
+    int $chMove = `checkBox -query -value chMoveConnexion`;
+    string $move="";
+    string $selected[] = `ls -sl`;
+    if($chMove)
+    {
+        $move="_Move";
+    }
+
+    if($cht)
+    {            
+        for($i=1;$i<size($selected);$i+=1)
+        { 
+            connectAttr($selected[0]+".translate") ($selected[$i]+$move+".translate");
+        }
+    }
+    if($chr)
+    {   
+        for($i=1;$i<size($selected);$i+=1)
+        { 
+            connectAttr($selected[0]+".rotate") ($selected[$i]+$move+".rotate");
+        }
+    }
+}
 
 proc ctrDrvJnt()
 {

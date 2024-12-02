@@ -152,7 +152,10 @@ def CtrlHeadStructure(sz):
     ##Creation
     for obj in CTRLS_hierarchy:
         if obj.split('_')[0] == "CTRL":
-            cmds.circle(name=obj,radius=size,nr=[0,1,0])
+            if obj=="CTRL_Head_01":
+                cmds.circle(name=obj,radius=size,nr=[0,0,1])
+            else:
+                cmds.circle(name=obj,radius=size,nr=[0,1,0])
         else:
             cmds.select(clear=True)  
             cmds.group(empty=True,name=obj)
