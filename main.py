@@ -154,11 +154,11 @@ def create_window():
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cmds.button(label='Create Loc', command=lambda x:clavicule.locClavicule(),width=100)
-    cmds.button(label='Create Clavicle', command=lambda x:clavicule.createClavicule(),width=100)
+    cmds.button(label='Create Clavicle', command=lambda x:clavicule.createClavicule(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cb_jnt_clav= cmds.checkBox(label="Create",v=True)
-    cmds.button(label='Mirror', command=lambda x:clavicule.mirorClav(cb_jnt_clav),width=100)
+    cmds.button(label='Mirror', command=lambda x:clavicule.mirorClav(cb_jnt_clav,sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.setParent('..')
 
@@ -365,9 +365,13 @@ def create_window():
 
     cmds.setParent('..')
     cmds.separator(h=10)
-    cmds.button(label='Scale', command=lambda x:tools.scaleCstr(),width=150)
-   
+    cmds.rowLayout(numberOfColumns=4, columnWidth4=[50,50,50,50])
+    cmds.button(label='Scale', command=lambda x:tools.Cstr("Scale"),width=50)
+    cmds.button(label='Parent', command=lambda x:tools.Cstr("Parent"),width=50)
+    cmds.button(label='Point', command=lambda x:tools.Cstr("Point"),width=50)
+    cmds.button(label='Orient', command=lambda x:tools.Cstr("Orient"),width=50)
     cmds.setParent('..')
+
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150, 150])
     cmds.button(label=' LRA On ', command=lambda x:tools.toggleRotateVisibilityFct(True),width=150)
     cmds.button(label=' LRA Off ', command=lambda x:tools.toggleRotateVisibilityFct(False),width=150)
@@ -431,9 +435,9 @@ def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck,cbRib,cbnbToe,CbToe):
     
     #Clav
     cmds.select("CTRL_IkFk_Arm_L")
-    clavicule.createClavicule()
+    clavicule.createClavicule(sz)
     cmds.select("CTRL_IkFk_Arm_L")
-    clavicule.mirorClav(True)
+    clavicule.mirorClav(True,sz)
     cmds.select("CTRL_IkFk_Arm_L")
 
     #Hips
