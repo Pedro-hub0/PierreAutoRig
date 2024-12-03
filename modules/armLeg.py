@@ -208,9 +208,13 @@ def createIkFk(sz):
         #    Ctrl_Hand=f'CTRL_Foot_{side}'
             
         BindHand="null"
+    if side =="R":
+        cmds.setAttr(f'{Ctrl_Hand}_Offset.scaleX',-1)
+        cmds.setAttr(f'{Pv_Ik_Arm}_Offset.scaleX',-1)
 
-
-    
+        if cmds.objExists(f'{Ctrl_Hand}_Offset'):
+            cmds.setAttr(f'{Ctrl_Hand}_Offset.rotateX',cmds.getAttr(f'{Ctrl_Hand[:-1]}L.rotateX'))
+            
     #Ik Fk
     # --> Create switch CTRL with attributes
     Ctrl_SwitchIkFk = cmds.circle(name=f'CTRL_IkFk_{objName}_{side}',radius=size)[0]
