@@ -101,7 +101,8 @@ def ctrlHand(sz):
                 cmds.parent(f'CTRL_{f}_0{i}_{side}_Offset',f'CTRL_{f}_0{i-1}_{side}') 
             y+=1
         cmds.parent(f'CTRL_{f}_01_{side}_Offset',grp_Hand)
-    cmds.parent(grp_Hand,f'Bind_Hand_{side}')
+    cmds.parent(grp_Hand,f'CTRL')
+    cmds.parentConstraint(f'Bind_Hand_{side}',grp_Hand, maintainOffset=True, weight=1)
 
 """def mirorHand(cb_jnt,cb_ctrl,sz):
     sz=cmds.intField(sz, query=True, value=True)
@@ -277,7 +278,6 @@ def CtrlPoses(size):
 
     cmds.parent(CtrlPose,f'CTRL')
     smallUsefulFct.move2(CtrlPose)
-    cmds.parentConstraint
     cmds.parentConstraint(f'Bind_Hand_{side}',f'{CtrlPose}_Move', maintainOffset=True, weight=1)
 
 
