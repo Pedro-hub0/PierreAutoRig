@@ -205,7 +205,8 @@ def OrganiseLocs(sz,cb_ToeNumber,cb_Toe):
     else:
         for fk in FkJnts:
             if fk != f"Fk_Foot_{side}":
-                FkCtrl.append(cmds.circle(name=f'CTRL_{fk}',radius=size,nr=[1,0,0])[0])
+                FkCtrl.append(cmds.circle(name=f'CTRL_{fk}',radius=size,nr=[0,0,1])[0])
+                cmds.setAttr(f'CTRL_{fk}.rotateZ',-90)
 
 
     i=0
@@ -215,7 +216,7 @@ def OrganiseLocs(sz,cb_ToeNumber,cb_Toe):
         TranslateJnt = cmds.xform(FkJnts[i+1], q=True, t=True, ws=True)
         RotationJnt = cmds.xform(FkJnts[i+1], query=True, rotation=True, worldSpace=True)
         smallUsefulFct.set_curve_color(FkCtrl[i],28)
-        cmds.xform(FkCtrl[i], t=TranslateJnt, ro=RotationJnt, ws=True)
+        cmds.xform(FkCtrl[i], t=TranslateJnt, ws=True)
         smallUsefulFct.offset(FkCtrl[i])
         if i>0:
             cmds.parent(f'{FkCtrl[i]}_Offset',FkCtrl[i-1])
@@ -290,8 +291,9 @@ def OrganiseLocs(sz,cb_ToeNumber,cb_Toe):
     cmds.parent(f'{FkCtrl[0]}_Offset',f'CTRL_Fk_Foot_{side}')
     if not cmds.objExists(f'CTRL_Foot_{side}_Offset'):
         smallUsefulFct.move(f'CTRL_Foot_{side}')
-        
-    cmds.parent(f'CTRL_Foot_{side}_Offset',"CTRL")
+
+    if cmds.listRelatives(f'CTRL_Foot_{side}_Offset', parent=True)[0] == None:  
+        cmds.parent(f'CTRL_Foot_{side}_Offset',"CTRL")
     
 
 def ConnectFoot():
@@ -327,9 +329,11 @@ def ConnectFoot():
     Ctrl=f"CTRL_Foot_{side}"
     # Expression Bank
     if side == "L" :
-        cmds.expression(name=exp_name_L, string=exp_L)
+        if not cmds.objExists(exp_name_L): 
+                cmds.expression(name=exp_name_L, string=exp_L)
     else:
-        cmds.expression(name=exp_name_R, string=exp_R)
+        if not cmds.objExists(exp_name_R):
+                cmds.expression(name=exp_name_R, string=exp_R)      
 
     #VARIABLES
     #Toe
@@ -385,8 +389,20 @@ def ConnectFoot():
     if Rotate!= 0:
         smallUsefulFct.offset2(f'Pivot_Ball_{side}')
     cmds.connectAttr(Ctrl + ".Foot_Roll", remapFRPivotRotX+".inputValue")
-    cmds.connectAttr(remapFRPivotRotX+".outValue",f"Pivot_Ball_{side}.rotateX")
+
+    
     cmds.connectAttr(Ctrl + ".Max_Ball", remapFRPivotRotX+".outputMax")
+    
+    if side == "R":
+        invertMaxBall=cmds.createNode('multiplyDivide', name=f'md_invertMaxBall_{side}')
+        cmds.setAttr(f'{invertMaxBall}.input1X',-1)
+        cmds.connectAttr( remapFRPivotRotX+".outValue",f'{invertMaxBall}.input2X')
+        cmds.connectAttr(invertMaxBall+".outputX",f"Pivot_Ball_{side}.rotateX")
+    else:
+        cmds.connectAttr(remapFRPivotRotX+".outValue",f"Pivot_Ball_{side}.rotateX")
+        
+
+
 
     cmds.connectAttr(Ctrl + ".Foot_Roll", remapFRToeRotX+".inputValue")
     cmds.connectAttr(Ctrl + ".Max_Toe", remapFRToeRotX+".outputMax")
@@ -402,7 +418,8 @@ def ConnectFoot():
 
 
     if cmds.objExists(f'Ik_Leg_{side}'):
-        cmds.connectAttr(Ctrl + ".Twist_Leg", f'Ik_Leg_{side}.twist')
+        if not cmds.listConnections(f'Ik_Leg_{side}.twist', source=True, destination=False):
+            cmds.connectAttr(Ctrl + ".Twist_Leg", f'Ik_Leg_{side}.twist')
 
 def mirorFoot(cb_jnt,cb_ctrl,sizeCtrlArm,cb_ToeNumber,cb_Toe):
     cb_ctrl_val =True

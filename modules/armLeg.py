@@ -43,14 +43,30 @@ def createJnts(sz):
 def FreezeOrient():
 #joint -e  -oj xyz -secondaryAxisOrient xup -ch -zso;
     #Prendre Selections
-    selObj = cmds.ls(selection=True)    
+    selObj = cmds.ls(selection=True)
+    obj=selObj[0]
+    side=selObj[0][-1]
+    objName=selObj[0][:-2] 
     TempIkChain = cmds.listRelatives(selObj, allDescendents=True, type='joint') or []
 
+    #smallUsefulFct.offset(obj)
     #Freeze et Orient :
     cmds.makeIdentity(selObj[0],apply=True, rotate=True, translate=False, scale=False, normal=False)
-    cmds.joint(selObj[0], e=True, oj='xyz', sao='xup', ch=True, zso=True)   
+
+    if objName == "Leg" :
+        cmds.joint(selObj[0], e=True, oj='xyz', sao='xup', ch=True, zso=True)   
+
+    else:
+        cmds.joint(selObj[0], e=True, oj='xyz', sao='yup', ch=True, zso=True)   
     cmds.joint(TempIkChain[0], e=True, oj='none', ch=True, zso=True)
+    direct_children = cmds.listRelatives(selObj, children=True, type="joint")[0]
+    
+    #Having just one orientation permit to correct some ik issue after:
+    cmds.setAttr(f'{obj}.jointOrientX',0) 
+    cmds.setAttr(f'{direct_children}.jointOrientX',0) 
+    cmds.setAttr(f'{direct_children}.jointOrientZ',0)
     return
+
 
 def createIkFk(sz):
     #NEED A GOOD NAME FOR THE FIRST JOINT
@@ -111,8 +127,6 @@ def createIkFk(sz):
     else:
         raise ValueError("You need to have only 2 child (in your hierarchy, do whatever you want in your life)")
     
-    #Freeze and Orient ?
-
     #Duplicate
     if objName == "Arm":
         #create BindHand
@@ -137,8 +151,17 @@ def createIkFk(sz):
     smallUsefulFct.move(IkChain[0])
     
     #Ik
+    #tempRotZ=cmds.getAttr(f'{IkChain[0]}_Offset.rotateZ')
+    #cmds.getAttr(f'{IkChain[0]}_Offset.rotateZ')
+    #cmds.setAttr(f'{IkChain[0]}_Offset.rotateZ',0)
     ik_handle_Arm =cmds.ikHandle(startJoint=IkChain[0], endEffector=IkChain[2], solver='ikRPsolver', name=f'Ik_{objName}_{side}')[0]
+    #tempCstr=cmds.parentConstraint(f'{IkChain[0]}_Offset',ik_handle_Arm, maintainOffset=True, weight=1)
+    #
+    #cmds.setAtt   r(f'{IkChain[0]}_Offset.rotateZ',tempRotZ)
+    #
+    #cmds.delete(tempCstr)
     cmds.parent(ik_handle_Arm,grp_Iks)
+
     #Pole vector
 
     Pv_Ik_Arm= cmds.circle(name=f'Pv_{objName}_{side}',radius=size/2,nr=[1,0,0])[0]
@@ -151,10 +174,11 @@ def createIkFk(sz):
 
     if objName=="Leg":
         move=size*3
-    TranslateShoulderMove=(TranslateShoulder[0],TranslateShoulder[1],TranslateShoulder[2]+move)
+    TranslateShoulderMove=(TranslateShoulder[0],TranslateShoulder[1],TranslateShoulder[2])
     cmds.xform(Pv_Ik_Arm, t=TranslateShoulderMove, ws=True)
     cmds.poleVectorConstraint(Pv_Ik_Arm, ik_handle_Arm)
     smallUsefulFct.move(Pv_Ik_Arm)
+    cmds.setAttr(f'{Pv_Ik_Arm}_Move.translateZ',move)
 
     #Fk Controller 
     if objName == "Arm" :
@@ -199,9 +223,9 @@ def createIkFk(sz):
     if objName == "Leg" :
         if cmds.objExists(f'CTRL_Foot_{side}'):
             cmds.delete(f'CTRL_Foot_{side}')
-        Ctrl_Hand=cmds.circle(name=f'CTRL_Foot_{side}',nr=[1,0,0],radius=size)[0]
+        Ctrl_Hand=cmds.circle(name=f'CTRL_Foot_{side}',nr=[0,1,0],radius=size)[0]
         smallUsefulFct.set_curve_color(Ctrl_Hand,16)
-        cmds.xform(Ctrl_Hand, t=TranslateJnt, ro=RotationJnt, ws=True)
+        cmds.xform(Ctrl_Hand, t=TranslateJnt, ws=True)
         smallUsefulFct.move(Ctrl_Hand)
         foot.createAttributFoot(Ctrl_Hand,side)
         #else:

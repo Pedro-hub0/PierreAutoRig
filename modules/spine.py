@@ -100,11 +100,13 @@ def createSpine(spineIk,spineFk,sz) :
     cmds.connectAttr(f'{JntName[0]}.worldMatrix',f'{ik_Handle}.dWorldUpMatrix')
     cmds.connectAttr(f'{JntName[1]}.worldMatrix',f'{ik_Handle}.dWorldUpMatrixEnd') 
     cmds.setAttr(f'{ik_Handle}.dWorldUpVectorEndX',0)
-    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorEndY',1)
-    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorEndZ', 0)
+    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorEndY',0)
+    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorEndZ', 1)
     cmds.setAttr(f'{ik_Handle}.dWorldUpVectorX', 0)
-    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorY', 1)
-    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorZ', 0)
+    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorY', 0)
+    cmds.setAttr(f'{ik_Handle}.dWorldUpVectorZ', 1)
+    cmds.setAttr(f"{ik_Handle}.dForwardAxis", 2) 
+    cmds.setAttr(f"{ik_Handle}.dWorldUpAxis", 3) 
    
     #Create Controllers
         #Ik

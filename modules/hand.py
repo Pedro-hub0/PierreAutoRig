@@ -227,7 +227,7 @@ def CtrlPoses(size):
     axe=['x','y','z']
     valueAttribute = [
     [[0, 0, 0], [-(3/2), 0, 0], [-(1/2), 0, 0], [(1/2), 0, 0], [(3/2), 0, 0]],
-    [[(-1/2), (-1/2), (-1/2)], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(1/2), -(1/2), -(1/2)], [-1, -1, -1]],
+    [[0, 0, 0], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(3/4), -(3/4), -(3/4)], [-1, -1, -1]],
     [[0, 0, 0], [1, (-1), (-2)], [1, (-1), (-2)], [1,( -1), (-2)], [1, (-1), (-2)]],
     [[0, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0]],
     [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]
@@ -262,9 +262,9 @@ def CtrlPoses(size):
                     if Att[iAtt]== "Spread":
                         connections = cmds.listConnections(f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateY' , source=True, destination=True)
                         if not connections:
-                            cmds.expression(s=f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateY = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}')                    
+                            cmds.expression(s=f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateY = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}',n=f'EXPR_{CtrlPose}_{Fingers[iFing]}_{Att[iAtt]}_{side}')                    
                     else:
-                        cmds.expression(s=f"{plusMinusNode[iFing]}.input3D[{iAtt}].input3D{axe[j]} = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}")
+                        cmds.expression(s=f"{plusMinusNode[iFing]}.input3D[{iAtt}].input3D{axe[j]} = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}",n=f'EXPR_{CtrlPose}_{Fingers[iFing]}_{Att[iAtt]}_{side}')
                         connections = cmds.listConnections(f'CTRL_{Fingers[iFing]}_0{j+2}_{side}_Move.rotateZ', source=True, destination=True)
                         if not connections:
                             #cmds.expression(s=f"{plusMinusNode[iFing]}.input3D[{iAtt}].input3D{axe[j]} = {CtrlPose}.{Att[iAtt]} * {valueAttribute[iAtt][iFing][j]}")

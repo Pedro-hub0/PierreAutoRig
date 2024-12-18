@@ -38,14 +38,14 @@ def AttachRib(attach):
         side=r.split("_")[1]
         ##Check##
         if obj == "Shoulder":
-            selObj=[f"DrvJnt_{r}",f"DrvJnt_Elbow_{side}"]
+            selObj=[f"DrvJnt_{r}",f"Preserve_Arm_{side}"]
             objSwitch="Arm"
         if obj == "Elbow":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Wrist_{side}"]
             objSwitch="Arm"
             objextremity="Wrist"
         if obj == "Leg":
-            selObj=[f"DrvJnt_{r}",f"DrvJnt_Knee_{side}"]
+            selObj=[f"DrvJnt_{r}",f"Preserve_Leg_{side}"]
             objSwitch="Leg"
         if obj == "Knee":
             selObj=[f"DrvJnt_{r}",f"DrvJnt_Ankle_{side}"]
@@ -72,7 +72,7 @@ def AttachRib(attach):
         ##Parent le Ribbon a la jambe
         cmds.parentConstraint(selObj[0], selObj[1], GlobalRib, sr=["x","y","z"],maintainOffset=False)
         cmds.parentConstraint(selObj[0], GlobalRib, st=["x", "y","z"],maintainOffset=False)
-        print(f'           :{selObj[0]}        {selObj[1]}')
+
 
   
         if cmds.objExists(ARib) and cmds.objExists(BRib):
@@ -98,6 +98,9 @@ def AttachRib(attach):
             condition_node_elbow = cmds.createNode('condition', name=f'condition_{objextremity}_{side}')
             if obj=="Knee":
                 cmds.connectAttr(f'CTRL_Foot_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')                
+                multDivideRibAnkleInv = cmds.createNode('multiplyDivide', name=f'MD_InvMD_RibA01_{obj}_{side}')
+                cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{multDivideRibAnkleInv}.input1X') 
+                cmds.setAttr(f'{multDivideRibAnkleInv}.input2X',-1)
             else:
                 cmds.connectAttr(f'DrvJnt_{objextremity}_{side}.rotate',f'{condition_node_elbow}.colorIfTrue')
             cmds.connectAttr(f'Fk_{objextremity}_{side}.rotate',f'{condition_node_elbow}.colorIfFalse')
@@ -105,22 +108,30 @@ def AttachRib(attach):
             cmds.setAttr(f'{condition_node_elbow}.operation',0)
             cmds.setAttr(f'{condition_node_elbow}.secondTerm',1)
             if not isA:
-                cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{ARib}.rotateX')
-                cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{ARib}.rotateY') 
+                if not obj=="Knee":
+                    cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{ARib}.rotateX')
+                    cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{ARib}.rotateY') 
+                else:
+                    cmds.connectAttr(f'{multDivideRibAnkleInv}.outputX',f'{ARib}.rotateX')
+
             else:
-                cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{BRib}.rotateX') 
-                cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{BRib}.rotateY') 
+                if not obj=="Knee":
+                    cmds.connectAttr(f'{condition_node_elbow}.outColorR',f'{BRib}.rotateX') 
+                    cmds.connectAttr(f'{condition_node_elbow}.outColorG',f'{BRib}.rotateY') 
+                else:
+                    cmds.connectAttr(f'{multDivideRibAnkleInv}.outputX',f'{BRib}.rotateX')
 
 
         ##SHOULDER 
         if obj in ("Shoulder","Leg"):
             locs_NonRoll=[f'Loc_Twist_{obj}_01_{side}',f'Loc_Twist_{obj}_02_{side}']
-            for l in range(len(locs_NonRoll)):
+            for l in range(0,len(locs_NonRoll)):
                 if cmds.objExists(f'{locs_NonRoll[l]}_Move'):
                     cmds.delete(f'{locs_NonRoll[l]}_Move')
                 if cmds.objExists(f'{locs_NonRoll[l]}'):
                     cmds.delete(f'{locs_NonRoll[l]}')
 
+                
                 cmds.spaceLocator(name=locs_NonRoll[l])[0]
             
             #Loc 01

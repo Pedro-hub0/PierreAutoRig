@@ -159,9 +159,15 @@ def Stretchfct():
     blacklist=['Bind_Hip','Bind_Leg_R','Bind_Leg_L']
     for ik in Ik_jnt_Names:
         if ik not in blacklist:
-            cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleX')
-            cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleY')
-            cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleZ')
+            if side == "Root": 
+                cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleX')
+                cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleY')
+                cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleZ')
+            else:
+                cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleX')
+                cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleY')
+                cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleZ')
+
 
 def lock_translation_attributes():
     if cmds.getAttr("CTRL_Root.Stretch_Spine") == 0:

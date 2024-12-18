@@ -228,26 +228,28 @@ def CreateFollows():
 
             #Create Remaps
             # Global // Neutral Remap 
-            remapFollow0 = cmds.createNode('remapValue', name=f'remapV_follow_Global_{Ctrls}_{side}')
-            smallUsefulFct.initialiseRemap(remapFollow0,0,2,0,1)
-            for j in range(0,len(followElement)):
-                cmds.setAttr(f"{remapFollow0}.value[{j}].value_Position", 0)
-                cmds.setAttr(f"{remapFollow0}.value[{j}].value_FloatValue",0)
-                cmds.setAttr(f"{remapFollow0}.value[{j}].value_Interp", 1)
+            if not cmds.objExists(f'remapV_follow_Global_{Ctrls}_{side}'):
+                remapFollow0 = cmds.createNode('remapValue', name=f'remapV_follow_Global_{Ctrls}_{side}')
+                smallUsefulFct.initialiseRemap(remapFollow0,0,2,0,1)
+                for j in range(0,len(followElement)):
+                    cmds.setAttr(f"{remapFollow0}.value[{j}].value_Position", 0)
+                    cmds.setAttr(f"{remapFollow0}.value[{j}].value_FloatValue",0)
+                    cmds.setAttr(f"{remapFollow0}.value[{j}].value_Interp", 1)
 
             # Others Remaps      
             for i in range(0,len(followElement)):
                 if cmds.objExists(followElement[i]):
-                    remapFollow = cmds.createNode('remapValue', name=f'remapV_follow_{followElement[i]}_{Ctrls}_{side}')
-                    smallUsefulFct.initialiseRemap(remapFollow,0,2,0,1)
-
-                    for j in range(0,len(followElement)+1):
-                        cmds.setAttr(f"{remapFollow}.value[{j}].value_Position", j*(1/(len(followElement))))
-                        if j == i+1:x = 1 
-                        else: x = 0
-                        cmds.setAttr(f"{remapFollow}.value[{j}].value_FloatValue",x)
-                        cmds.setAttr(f"{remapFollow}.value[{j}].value_Interp", 1)
-
+                    if not cmds.objExists(f'remapV_follow_{followElement[i]}_{Ctrls}_{side}'):
+                        remapFollow = cmds.createNode('remapValue', name=f'remapV_follow_{followElement[i]}_{Ctrls}_{side}')
+                        smallUsefulFct.initialiseRemap(remapFollow,0,2,0,1)
+                        for j in range(0,len(followElement)+1):
+                            cmds.setAttr(f"{remapFollow}.value[{j}].value_Position", j*(1/(len(followElement))))
+                            if j == i+1:x = 1 
+                            else: x = 0
+                            cmds.setAttr(f"{remapFollow}.value[{j}].value_FloatValue",x)
+                            cmds.setAttr(f"{remapFollow}.value[{j}].value_Interp", 1)
+                    else:
+                        remapFollow=f'remapV_follow_{followElement[i]}_{Ctrls}_{side}'
                     if not cmds.listConnections(f'{remapFollow}.inputValue', source=True, destination=False):
                         cmds.connectAttr(f'CTRL_{Ctrls}_{side}.Follow',f'{remapFollow}.inputValue')
                         cmds.connectAttr(f'{remapFollow}.outValue',f'{tempCstr}.{followElement[i]}W{i}')
@@ -298,11 +300,12 @@ def CreateFollows():
         tempCstr= f"CTRL_Fk_Shoulder_{side}_Move_orientConstraint1"
         # Put Value Constraint
         if cmds.objExists(tempCstr):
-            cmds.connectAttr(f'CTRL_Fk_Shoulder_{side}.Global',f'{tempCstr}.CTRL_TorsoW0')
+            if not cmds.listConnections(f'{tempCstr}.CTRL_TorsoW0', source=True, destination=False):
+                cmds.connectAttr(f'CTRL_Fk_Shoulder_{side}.Global',f'{tempCstr}.CTRL_TorsoW0')
             
 
     # Fk Neck / Head (followGlobalElements)
-    for i in range(0,len(flws)):
+    for i in range(0,len(flws)-1):
         # Create Attribute
                 # Create Attribute
         if cmds.objExists(f'{flws[i].follower}'):

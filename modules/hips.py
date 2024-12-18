@@ -11,7 +11,7 @@ def create_hips():
     target_jnt_Names = ['Bind_Root','DrvJnt_Leg_L','DrvJnt_Leg_R']
     target_jnt_Names2 = ['Fk_Leg_L','Fk_Leg_R']
     Ctrl_Fk=['CTRL_Fk_Leg_L_Move','CTRL_Fk_Leg_R_Move']
-
+    cmds.select(clear=True)
     # Create a new joint
     for jnt_n in jnt_Names:
         cmds.select(clear=True)
