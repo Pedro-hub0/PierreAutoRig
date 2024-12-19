@@ -156,13 +156,13 @@ def Stretchfct():
 
 
     ##Tout CONNECTER AUX JOINTS 
-    blacklist=['Bind_Hip','Bind_Leg_R','Bind_Leg_L']
+    blacklist=['Bind_Hip','Bind_Leg_R','Bind_Leg_L','Bind_Clavicule_01_L','Bind_Clavicule_01_L','Bind_Clavicule_01_R','Bind_Clavicule_01_R','Bind_Clavicule_End_L','Bind_Clavicule_End_R']
     for ik in Ik_jnt_Names:
         if ik not in blacklist:
             if side == "Root": 
                 cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleX')
                 cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleY')
-                cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleZ')
+                cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleZ')
             else:
                 cmds.connectAttr(f'{cond_Stretch}.outColorR',f'{ik}.scaleX')
                 cmds.connectAttr(f'{cond_Stretch}.outColorG',f'{ik}.scaleY')
