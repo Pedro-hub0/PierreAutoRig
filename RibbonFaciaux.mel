@@ -17,7 +17,7 @@ proc Ribb_window()
 
     if (`window -q -ex Ribb_window`) deleteUI Ribb_window;
 
-    window -title "Help Ribbon" -maximizeButton off -minimizeButton on -sizeable off -width 140 -height 250 Ribb_window;
+    window -title "Help Ribbon" -maximizeButton off -minimizeButton on -sizeable off -width 140 -height 400 Ribb_window;
 
     columnLayout;
         // text "Select curves and..."
@@ -48,8 +48,21 @@ proc Ribb_window()
                         -cs 1 10 -cs 2 10;  // Set a
             text -label "Enter Name:";
             textField -w 300 textInput;
-            text -label "Number Of Joints";
-            intField -minValue 2 -v 10 wp_jointOnCurves_window02_numOfJoint_second;
+        setParent ..;
+        rowColumnLayout -numberOfColumns 4
+                        -cw 1 45 -cw 2 45 -cw 3 90 -cw 4 45   // Set all column widths to 80
+                        -cs 1 10 -cs 2 10 -cs 3 10 -cs 4 10 ; 
+            text -label "Drv Jnts";
+            intField -minValue 2 -v 5 wp_jointOnCurves_window02_numOfJoint_first;
+            text -label "Bind In Between";
+            intField -minValue 2 -v 2 wp_jointOnCurves_window02_numOfJoint_second;
+            
+
+
+        setParent ..;
+        rowColumnLayout -numberOfColumns 2 
+                        -cw 1 90 -cw 2 90 
+                        -cs 1 10 -cs 2 10;       
             text -label "" -h 6;
             text -label "" -h 6;
             button -label "Create" -bgc 0.675 0.663 0.843 -c "RibbFct(\"joint\")";
@@ -74,18 +87,22 @@ proc Ribb_window()
         setParent ..;
                 // text infield "Curve Creation"
         text -label "" -h 6;	
+
+        rowColumnLayout -numberOfColumns 3 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
+            checkBox -label "Translate" -value 1 chtConnexion;
+            checkBox -label "Rotate" -value 0 chrConnexion;
+            checkBox -label "Move" -value 0 chMoveConnexion;
+        setParent ..;
+        rowColumnLayout -numberOfColumns 3 -cw 1 100 -cw 2 100 -cw 3 50 -cs 1 5 -cs 2 5 -cs 3 5;
+            checkBox -label "Multiply" -value 0 chMultiply;
+            text -label "Multiply By :";
+            intField  -v 1 wp_multiply;
+        setParent ..;
         rowColumnLayout -numberOfColumns 3 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
         //Select first Ctrl/ Drv/ Ctlr/Ctrl
             text -label "Connect Ctrl DrvJnt";
             button -label "Connect mod 2" -bgc 0.675 0.663 0.843 -c "ctrDrvJnt()";
             button -label "Connect 1 All" -bgc 0.675 0.663 0.843 -c "connectAll()";
-        setParent ..;
-        rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
-            checkBox -label "Translate" -value 1 chtConnexion;
-            checkBox -label "Rotate" -value 0 chrConnexion;
-            checkBox -label "Move" -value 0 chMoveConnexion;
-
-
         setParent ..;
 
 
@@ -106,36 +123,40 @@ proc RibbFct(string $type)
     // CREATE With the curve already created
     $temcurve1="tempCurve01";
     $temcurve2="tempCurve02";
-    string $loftSurface[] = `loft -ch 1 -u 1 -c 0 -ar 1 -d 1 -ss 1 -rn 0 -po 0 -rsn true $temcurve1 $temcurve2`;
+
+    int $NumberOfDrvJoints = `intField -q -v wp_jointOnCurves_window02_numOfJoint_first`;
+    int $NumberOfJointsInBetween = `intField -q -v wp_jointOnCurves_window02_numOfJoint_second`;
+    //Rename And Sort//
+    string $NameFinal =`textField -q -text textInput`;
+    $temcurve1Base=`rename $temcurve1 ("Curve_"+$NameFinal+"_01")`;
+    $temcurve2Base=`rename $temcurve2 ("Curve_"+$NameFinal+"_02")`;
+
+    //Create Ribbon Loft 
+
+    string $LoftName="loft_"+$NameFinal;
+    string $reb01[]=`rebuildCurve -ch 1 -rpo 0 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s $NumberOfDrvJoints  -d 3 -tol 0.01 $temcurve1Base`;
+    string $reb02[]=`rebuildCurve -ch 1 -rpo 0 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s $NumberOfDrvJoints  -d 3 -tol 0.01 $temcurve2Base`;
+    string $temcurve1=$reb01[0];
+    string $temcurve2=$reb02[0];
+    string $loftSurface[] = `loft -ch 1 -u 1 -c 0 -ar 1 -d 1 -ss 1 -rn 0 -po 0 -n $LoftName -rsn true $temcurve1 $temcurve2`;
     string $middleCurve[] = `duplicateCurve -ch 0 -rn 0 -local 0 ($loftSurface[0] +".u[0.5]")`;
-    string $NameFinal;
-    $NameFinal =`textField -q -text textInput`;
-        //Rename And Sort//
-    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $middleCurve[0]`;
-    $temcurve1=`rename $temcurve1 ("Curve_"+$NameFinal+"_01")`;
-    $temcurve2=`rename $temcurve2 ("Curve_"+$NameFinal+"_02")`;
     $middleCurve[0]=`rename $middleCurve[0] ("Curve_"+$NameFinal+"_Middle")`;
 
-    $loftSurface[0]=`rename $loftSurface[0] ("Loft_"+$NameFinal)`;
-    /* query dei nomi delle curve
-    if (`objExists $temcurve1` and `objExists $temcurve2`)
-    {
+    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $temcurve1Base $temcurve2Base $middleCurve[0]`;
 
-    } 
-    */
+
     select -r $middleCurve[0] $loftSurface[0];
     string $curves[] = `ls -sl -long `;
     string $curves02[] = `ls -sl`;
 
     int $NumberOfCurves = `size($curves)`;
-    int $NumberOfJoints;
     string $JointsSave[];
     string $DrvJnt[];
 
-    $NumberOfJoints = `intField -q -v wp_jointOnCurves_window02_numOfJoint_second`;
+
     string $name = `substitute ".*_" $curves[0] ""`;
     
-
+    int $NumberOfJoints = $NumberOfDrvJoints + ($NumberOfDrvJoints-1) * $NumberOfJointsInBetween;
 
 
 
@@ -153,13 +174,15 @@ proc RibbFct(string $type)
 
 
     //Delete Child BUT NOT WORKING ...
-    for ($fol in $follicleName) {
+    for ($fol in $follicleName) 
+    {
         // Get a list of children of the parent object
         $tempfol = `substitute "Shape" $fol ""`;
 
         string $children[] = `listRelatives -c $tempfol`;
         for ($c in $children){
-            if($c != $fol){
+            if($c != $fol)
+            {
               delete $c;
             }
 
@@ -189,7 +212,9 @@ proc RibbFct(string $type)
     $tempName02="Grp_Follicles_"+$NameFinal;
     rename $parentObject[0] $tempName02;
     $grpRibb = `group -em -n ("Grp_RibbonFac_"+$NameFinal) ` ;
-
+    
+    // Countdown Drv
+    int $countDrv=0;
     //RENAME THE JOINTS, Groupe,
     for ($j = 0; $j < $NumberOfJoints; $j++)
     {
@@ -214,26 +239,40 @@ proc RibbFct(string $type)
 
 
 
-        //Dupplicate and Hook
-        select $tempNameJnt;
-        $tempNameJnt2= "DrvJnt_"+$NameFinal+"_0"+$j;
-        duplicate -name $tempNameJnt2;
-        $DrvJnt[$j] =$tempNameJnt2;
+        //Dupplicate and Hook for DrvJnt
+        if($j%($NumberOfJointsInBetween+1)==0)
+        {
+
+            select $tempNameJnt;
+            $tempNameJnt2= "DrvJnt_"+$NameFinal+"_0"+$countDrv;
+            duplicate -name $tempNameJnt2;
+            $DrvJnt[$countDrv] =$tempNameJnt2;
+            
+            //Set Color and Radius
+
+            setAttr ($DrvJnt[$j]+".radius") 1;          // Increase the joint radius
+            setAttr ($DrvJnt[$j]+".overrideEnabled") 1;   // Enable color override
+            setAttr ($DrvJnt[$j]+".overrideColor") 0;    // Set the color
+
+            parent -w $tempNameJnt2;
+            // Set the relative translation to 0
+            fctHook($tempNameJnt2);
+            string $name01=$tempNameJnt2 + "_Offset";
+            parent $name01 $tempName01;
+            $countDrv +=1;
+
+        }
+
         //Set Color and Radius
         setAttr ($JointsSave[$j]+".radius") 0.5;          // Increase the joint radius
         setAttr ($JointsSave[$j]+".overrideEnabled") 1;   // Enable color override
         setAttr ($JointsSave[$j]+".overrideColor") 3;    // Set the color
-        setAttr ($DrvJnt[$j]+".radius") 1;          // Increase the joint radius
-        setAttr ($DrvJnt[$j]+".overrideEnabled") 1;   // Enable color override
-        setAttr ($DrvJnt[$j]+".overrideColor") 0;    // Set the color
 
-        parent -w $tempNameJnt2;
+
         // Set the relative translation to 0
 
         fctHook($JointsSave[$jntsize]);
-        fctHook($tempNameJnt2);
-        string $name01=$tempNameJnt2 + "_Offset";
-        parent $name01 $tempName01;
+
 
 
     }
@@ -253,7 +292,6 @@ proc RibbFct(string $type)
     delete $parentObject03;
     string $nucl[] = `ls "nucleus*"`;
     delete $nucl[size($nucl)-1];
-
 
     // Skin The DrvJnt to the loft
     skinCluster -tsb $DrvJnt $curves02[1];
@@ -359,8 +397,7 @@ proc ctrlOnRivet()
 {
     string $selected[] = `ls -sl`;
     string $curve =	`curve -d 1 -p 0 1 0 -p 0 0.92388 0.382683 -p 0 0.707107 0.707107 -p 0 0.382683 0.92388 -p 0 0 1 -p 0 -0.382683 0.92388 -p 0 -0.707107 0.707107 -p 0 -0.92388 0.382683 -p 0 -1 0 -p 0 -0.92388 -0.382683 -p 0 -0.707107 -0.707107 -p 0 -0.382683 -0.92388 -p 0 0 -1 -p 0 0.382683 -0.92388 -p 0 0.707107 -0.707107 -p 0 0.92388 -0.382683 -p 0 1 0 -p 0.382683 0.92388 0 -p 0.707107 0.707107 0 -p 0.92388 0.382683 0 -p 1 0 0 -p 0.92388 -0.382683 0 -p 0.707107 -0.707107 0 -p 0.382683 -0.92388 0 -p 0 -1 0 -p -0.382683 -0.92388 0 -p -0.707107 -0.707107 0 -p -0.92388 -0.382683 0 -p -1 0 0 -p -0.92388 0.382683 0 -p -0.707107 0.707107 0 -p -0.382683 0.92388 0 -p 0 1 0 -p 0 0.92388 -0.382683 -p 0 0.707107 -0.707107 -p 0 0.382683 -0.92388 -p 0 0 -1 -p -0.382683 0 -0.92388 -p -0.707107 0 -0.707107 -p -0.92388 0 -0.382683 -p -1 0 0 -p -0.92388 0 0.382683 -p -0.707107 0 0.707107 -p -0.382683 0 0.92388 -p 0 0 1 -p 0.382683 0 0.92388 -p 0.707107 0 0.707107 -p 0.92388 0 0.382683 -p 1 0 0 -p 0.92388 0 -0.382683 -p 0.707107 0 -0.707107 -p 0.382683 0 -0.92388 -p 0 0 -1 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -k 17 -k 18 -k 19 -k 20 -k 21 -k 22 -k 23 -k 24 -k 25 -k 26 -k 27 -k 28 -k 29 -k 30 -k 31 -k 32 -k 33 -k 34 -k 35 -k 36 -k 37 -k 38 -k 39 -k 40 -k 41 -k 42 -k 43 -k 44 -k 45 -k 46 -k 47 -k 48 -k 49 -k 50 -k 51 -k 52` ;
-    string $NameFinal;
-    $NameFinal =`textField -q -text textInput`;
+    string $NameFinal =`textField -q -text textInput`;
     $GrpRivet = `group -name ("Grp_Rivet_"+$NameFinal)`;
     select $GrpRivet;
     //Ce serait colle de vérifier si le 1er c est une curve et les autres des locators
@@ -457,6 +494,10 @@ proc ctrDrvJnt()
     int $cht = `checkBox -query -value chtConnexion`;
     int $chr = `checkBox -query -value chrConnexion`;
     int $chMove = `checkBox -query -value chMoveConnexion`;
+
+    int $chMultiply = `checkBox -query -value chMultiply`;
+    int $MultiplyNumber= `intField -q -v wp_multiply`;
+
     string $move="";
     if($chMove)
     {
@@ -469,14 +510,45 @@ proc ctrDrvJnt()
         {            
             for($i=0;$i<size($selected);$i+=2)
             { 
-                connectAttr($selected[$i]+".translate") ($selected[$i+1]+$move+".translate");
+                if($chMultiply)
+                {
+                    // Sanitize the name by replacing '|' with '_'
+                    string $sanitizedName = `substituteAllString $selected[$i] "|" "_"`;
+                    string $nameMult = "multDiv_Rotate_" + $sanitizedName;
+
+                    // Create a multiplyDivide node and assign it to a variable
+                    string $multDivNode = `createNode multiplyDivide -name $nameMult`;
+                    setAttr($multDivNode+".input2X") $MultiplyNumber;
+                    setAttr($multDivNode+".input2Y") $MultiplyNumber;                    
+                    setAttr($multDivNode+".input2Z") $MultiplyNumber;
+                    connectAttr($selected[$i]+".translate") ($multDivNode+".input1");
+                    connectAttr($multDivNode+".output") ($selected[$i+1]+$move+".translate");
+
+                }
+                else 
+                {
+                    connectAttr($selected[$i]+".translate") ($selected[$i+1]+$move+".translate");
+                }
+                
             }
         }
         if($chr)
         {   
             for($i=0;$i<size($selected);$i+=2)
             { 
-                connectAttr($selected[$i]+".rotate") ($selected[$i+1]+$move+".rotate");
+                if($chMultiply)
+                {
+                    // Sanitize the name by replacing '|' with '_'
+                    string $sanitizedName = `substituteAllString $selected[$i] "|" "_"`;
+                    string $nameMult = "multDiv_Translate_" + $sanitizedName;
+                    string $multDivNode = `createNode multiplyDivide -name $nameMult`;
+
+                    connectAttr($selected[$i]+".rotate") ($multDivNode+".input1");
+                    connectAttr($multDivNode+".output") ($selected[$i+1]+$move+".rotate");
+
+                }
+                else {
+                connectAttr($selected[$i]+".rotate") ($selected[$i+1]+$move+".rotate");}
             }
         }
 

@@ -362,7 +362,6 @@ def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
     typeBrute=cmds.optionMenu(cbType, query=True, value=True)
     vartype=findType(typeBrute)
     objUp= cmds.textField(cbobjUp, query=True, text=True)
-
     selObj = cmds.ls(selection=True)
     nbrJnt=cmds.intField(cbnbjoint, query=True, value=True)
     name=cmds.textField(cbName, query=True, text=True)
@@ -373,17 +372,30 @@ def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
         # Create a joint
         cmds.select(clear=True)
         joint = cmds.joint(name=f"{name}")
-        motion_path_node = cmds.pathAnimation(joint, c=selObj[0], name=f"{name}_motionPath",                
-                fractionMode=True,
-                follow=True,
-                followAxis="x",
-                upAxis="y",
-                worldUpType=vartype,
-                worldUpVector=(0, 1, 0),
-                worldUpObject=objUp,
-                inverseUp=False,
-                inverseFront=False,
-                bank=False)
+        if objUp == "":
+            motion_path_node = cmds.pathAnimation(joint, c=selObj[0], name=f"{name}_motionPath",                
+            fractionMode=True,
+            follow=True,
+            followAxis="x",
+            upAxis="y",
+            worldUpType=vartype,
+            worldUpVector=(0, 1, 0),
+            inverseUp=False,
+            inverseFront=False,
+            bank=False)
+
+        else:
+            motion_path_node = cmds.pathAnimation(joint, c=selObj[0], name=f"{name}_motionPath",                
+                    fractionMode=True,
+                    follow=True,
+                    followAxis="x",
+                    upAxis="y",
+                    worldUpType=vartype,
+                    worldUpVector=(0, 1, 0),
+                    worldUpObject=objUp,
+                    inverseUp=False,
+                    inverseFront=False,
+                    bank=False)
 
         # Delete the keyframes on the uValue
         cmds.cutKey(motion_path_node, attribute="uValue", clear=True)
