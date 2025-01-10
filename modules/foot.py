@@ -292,9 +292,11 @@ def OrganiseLocs(sz,cb_ToeNumber,cb_Toe):
     if not cmds.objExists(f'CTRL_Foot_{side}_Offset'):
         smallUsefulFct.move(f'CTRL_Foot_{side}')
 
-    if cmds.listRelatives(f'CTRL_Foot_{side}_Offset', parent=True)[0] == None:  
-        cmds.parent(f'CTRL_Foot_{side}_Offset',"CTRL")
-    
+    try:
+        if cmds.listRelatives(f'CTRL_Foot_{side}_Offset', parent=True)[0] is None:
+            cmds.parent(f'CTRL_Foot_{side}_Offset', "CTRL")
+    except TypeError:
+        cmds.parent(f'CTRL_Foot_{side}_Offset', "CTRL")
 
 def ConnectFoot():
     selObj = cmds.ls(selection=True)

@@ -57,9 +57,13 @@ proc Ribb_window()
             text -label "Bind In Between";
             intField -minValue 2 -v 2 wp_jointOnCurves_window02_numOfJoint_second;
             
-
-
         setParent ..;
+
+        rowColumnLayout -numberOfColumns 2 -cw 1 50 -cw 2 50 -cw 3 60 -cs 1 20 -cs 2 5 -cs 3 5;
+            text -label "Span";
+            intField -minValue 2 -v 5 wp_jointOnCurves_window02_span;
+        setParent ..;
+
         rowColumnLayout -numberOfColumns 2 
                         -cw 1 90 -cw 2 90 
                         -cs 1 10 -cs 2 10;       
@@ -126,6 +130,8 @@ proc RibbFct(string $type)
 
     int $NumberOfDrvJoints = `intField -q -v wp_jointOnCurves_window02_numOfJoint_first`;
     int $NumberOfJointsInBetween = `intField -q -v wp_jointOnCurves_window02_numOfJoint_second`;
+    int $SpanNumb = `intField -q -v wp_jointOnCurves_window02_span`;
+ 
     //Rename And Sort//
     string $NameFinal =`textField -q -text textInput`;
     $temcurve1Base=`rename $temcurve1 ("Curve_"+$NameFinal+"_01")`;
@@ -134,15 +140,14 @@ proc RibbFct(string $type)
     //Create Ribbon Loft 
 
     string $LoftName="loft_"+$NameFinal;
-    string $reb01[]=`rebuildCurve -ch 1 -rpo 0 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s $NumberOfDrvJoints  -d 3 -tol 0.01 $temcurve1Base`;
-    string $reb02[]=`rebuildCurve -ch 1 -rpo 0 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s $NumberOfDrvJoints  -d 3 -tol 0.01 $temcurve2Base`;
+    string $reb01[]=`rebuildCurve -ch 1 -rpo 0 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s $SpanNumb  -d 3 -tol 0.01 $temcurve1Base`;
+    string $reb02[]=`rebuildCurve -ch 1 -rpo 0 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s $SpanNumb  -d 3 -tol 0.01 $temcurve2Base`;
     string $temcurve1=$reb01[0];
     string $temcurve2=$reb02[0];
     string $loftSurface[] = `loft -ch 1 -u 1 -c 0 -ar 1 -d 1 -ss 1 -rn 0 -po 0 -n $LoftName -rsn true $temcurve1 $temcurve2`;
-    string $middleCurve[] = `duplicateCurve -ch 0 -rn 0 -local 0 ($loftSurface[0] +".u[0.5]")`;
-    $middleCurve[0]=`rename $middleCurve[0] ("Curve_"+$NameFinal+"_Middle")`;
 
-    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $temcurve1Base $temcurve2Base $middleCurve[0]`;
+
+    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $temcurve1Base $temcurve2Base `;
 
 
     select -r $middleCurve[0] $loftSurface[0];
