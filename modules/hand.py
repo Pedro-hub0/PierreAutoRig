@@ -228,7 +228,7 @@ def CtrlPoses(size):
     axe=['x','y','z']
     valueAttribute = [
     [[0, 0, 0], [-(3/2), 0, 0], [-(1/2), 0, 0], [(1/2), 0, 0], [(3/2), 0, 0]],
-    [[0, 0, 0], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(3/4), -(3/4), -(3/4)], [-1, -1, -1]],
+    [[-(1/8), -(1/8), -(1/8)], [-(1/4), -(1/4), -(1/4)], [-(2/4), -(2/4), -(2/4)], [-(3/4), -(3/4), -(3/4)], [-1, -1, -1]],
     [[0, 0, 0], [1, (-1), (-2)], [1, (-1), (-2)], [1,( -1), (-2)], [1, (-1), (-2)]],
     [[0, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0]],
     [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]
@@ -274,7 +274,7 @@ def CtrlPoses(size):
     for ifing in range(0,len(Fingers)):
         for j in range(0,3):
             nbr=iAtt+ifing+1
-            cmds.expression(s=f"{plusMinusNode[ifing]}.input3D[{nbr}].input3D{axe[j]} = {CtrlPose}.{AttCurl[ifing]} * (-1)")
+            cmds.expression(s=f"{plusMinusNode[ifing]}.input3D[{nbr}].input3D{axe[j]} = {CtrlPose}.{AttCurl[ifing]} * (-1)",n=f'EXPR_{CtrlPose}_{Fingers[ifing]}_{AttCurl[iAtt]}_{side}')
 
     cmds.parent(CtrlPose,f'CTRL')
     smallUsefulFct.move2(CtrlPose)

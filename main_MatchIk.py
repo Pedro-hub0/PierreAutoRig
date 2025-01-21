@@ -43,8 +43,8 @@ def create_window():
     # Create a text field
     txt_mamespace = cmds.textField(placeholderText="Namespace")
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[150, 75,75])
-    cmds.button(label='Match Auto', command=lambda x:tools.matchIkFk(2,txt_mamespace),width=150)
-    cmds.button(label='Fk/Ik', command=lambda x:tools.matchIkFk(0,txt_mamespace),width=75)
-    cmds.button(label='Ik/Fk', command=lambda x:tools.matchIkFk(1,txt_mamespace),width=75)
+    cmds.button(label='Match Auto', command=lambda x:modules.tools.matchIkFk(2,txt_mamespace),width=150)
+    cmds.button(label='Fk/Ik', command=lambda x:modules.tools.matchIkFk(0,txt_mamespace),width=75)
+    cmds.button(label='Ik/Fk', command=lambda x:modules.tools.matchIkFk(1,txt_mamespace),width=75)
     # Show the window
     cmds.showWindow(window_name)

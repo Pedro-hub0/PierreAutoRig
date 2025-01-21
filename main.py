@@ -297,16 +297,20 @@ def create_window():
     cmds.separator(h=8)
 
     cmds.frameLayout(label='CTRL On Selection',w = 300, collapsable=True, collapse=True)
-    cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[75,75,75])
     cb_parent= cmds.checkBox(label="Parent",v=True)
     cb_cstr_Point = cmds.checkBox(label="Point",v=False)
     cb_cstr_Orient = cmds.checkBox(label="Orient",v=False)
-    cb_cstr_Move= cmds.checkBox(label="Move",v=True)
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[75,75,75])
+    cb_cstr_Move= cmds.checkBox(label="Move",v=False)
+    cb_cstr_Offset= cmds.checkBox(label="Offset",v=True)
+    cb_cstr_Rotate=cmds.checkBox(label="Rotate",v=False)
     cmds.setParent('..')
   
 
-    cb_cstr=[cb_parent,cb_cstr_Point,cb_cstr_Orient,cb_cstr_Move]
-    cmds.button(label='Controllers On Selection', command=lambda x:tools.CtrlParentCreate(cb_cstr),width=300)
+    cb_cstr=[cb_parent,cb_cstr_Point,cb_cstr_Orient,cb_cstr_Move,cb_cstr_Offset,cb_cstr_Rotate]
+    cmds.button(label='Controllers On Selection', command=lambda x:tools.CtrlParentCreate(cb_cstr,sizeCtrlArm),width=300)
     cmds.setParent('..')
     
     
@@ -341,7 +345,13 @@ def create_window():
 
 
     cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
-    cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("Bind"),width=300)
+    cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("bind",True),width=300)
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
+    cnNameFind = cmds.textField(placeholderText="Find",text="Drv",w=100)
+    cmds.button(label='Select Jnt', command=lambda x:tools.selectJnt(cnNameFind,True),width=100)
+    cmds.button(label='Select All', command=lambda x:tools.selectJnt(cnNameFind,False),width=100)
+
+    cmds.setParent('..')    
     cmds.frameLayout(label='JOINT PATH CONSTRAINTS', collapsable=True, collapse=True,w = 300)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cnNamePath = cmds.textField(placeholderText="Name",text="Bind_Name",w=150)
@@ -356,22 +366,25 @@ def create_window():
     cmds.menuItem(label="Object Rotation Up")
     cmds.menuItem(label="Vector")
     cmds.menuItem(label="Normal")
-
-
-
     cmds.setParent('..')    
-
-    cmds.button(label='Joint Path Constraints', command=lambda x:tools.PathJointContraint(cnNumberPath,cnNamePath,enum_dropdown,cbObjUp),width=150)
-
+    cbIsFolloPC = cmds.checkBox(label="Follow",v=False)
+    cmds.button(label='Joint Path Constraints', command=lambda x:tools.PathJointContraint(cnNumberPath,cnNamePath,enum_dropdown,cbObjUp,cbIsFolloPC),width=150)
     cmds.setParent('..')
-    cmds.separator(h=10)
+
+    cmds.separator(h=4)
+    cmds.frameLayout(label='Constraints',w = 300, collapsable=True, collapse=True)
     cmds.rowLayout(numberOfColumns=4, columnWidth4=[50,50,50,50])
-    cmds.button(label='Scale', command=lambda x:tools.Cstr("Scale"),width=50)
-    cmds.button(label='Parent', command=lambda x:tools.Cstr("Parent"),width=50)
-    cmds.button(label='Point', command=lambda x:tools.Cstr("Point"),width=50)
-    cmds.button(label='Orient', command=lambda x:tools.Cstr("Orient"),width=50)
+    cb_cstr_Parentv2 = cmds.checkBox(label="Parent",v=False)
+    cb_cstr_Pointv2 = cmds.checkBox(label="Point",v=False)
+    cb_cstr_Orientv2= cmds.checkBox(label="Orient",v=False)
+    cb_cstr_Scalev2 = cmds.checkBox(label="Scale",v=False)
     cmds.setParent('..')
-
+    cb_list_cstr=[cb_cstr_Parentv2,cb_cstr_Pointv2 ,cb_cstr_Orientv2,cb_cstr_Scalev2]
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
+    cmds.button(label='Cstr 1 to all', command=lambda x:tools.Cstr(cb_list_cstr,0),width=100)
+    cmds.button(label='Cstr 1 to 1', command=lambda x:tools.Cstr(cb_list_cstr,1),width=100)    
+    cmds.setParent('..')
+    cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150, 150])
     cmds.button(label=' LRA On ', command=lambda x:tools.toggleRotateVisibilityFct(True),width=150)
     cmds.button(label=' LRA Off ', command=lambda x:tools.toggleRotateVisibilityFct(False),width=150)

@@ -66,16 +66,20 @@ def matchIkFk(value,txt_n):
     smallUsefulFct.copy_rotation_to_list(Fk_jnt_Names,rotate_Fk)
     smallUsefulFct.copy_translation_to_list(Ik_jnt_Names,translate_Ik)
     smallUsefulFct.copy_translation_to_list(Fk_jnt_Names,translate_Fk)
+    #if cmds.objExists(f'Dummy_Loc_{objName}_{side}'):
+    #    Dummy_Translate=cmds.xform(f'Dummy_Loc_{objName}_{side}', q=True, t=True, ws=True)
 
     if isIk ==1:
         #Transform Ik Ctrl to Jnt Fk Wrist
         cmds.xform(ik_Ctrl, translation=translate_Fk[2], rotation=rotate_Fk[2], worldSpace=True)
         #Translate Ik Pv to Jnt Fk Elbow
+        #if cmds.objExists(f'Dummy_Loc_{objName}_{side}'):
+        #    cmds.xform(pv_Ctrl, translation=Dummy_Translate, worldSpace=True)
+        #else:
         cmds.xform(pv_Ctrl, translation=translate_Fk[1], worldSpace=True)
     elif isIk == 0:
         #Rotate Fk Ctrl to Jnt drvjnt Shoulder/Elbow/Wrist
         test=cmds.getAttr(f'{txt_namespace}CTRL_IkFk_{objName}_{side}.Switch_Ik_Fk')
-
 
         for i in range(0,len(Fk_ctrl_Names)):
             cmds.xform(Fk_ctrl_Names[i],rotation=rotate_Ik[i], worldSpace=True)
@@ -153,20 +157,26 @@ def parentshapeScript(child_transform,parent_transform):
 
 
 
-def selectJnt(name):
+def selectJnt(name,isOk):
     selObj = cmds.ls(selection=True)
-
+    if name !="bind":
+        name=cmds.textField(name, query=True, text=True)
     if len(selObj)<1:
+
         pattern= name+"*"
-        # Get all joints that match the pattern
-        joints = cmds.ls(pattern, type="joint")
+        if isOk:
+            # Get all joints that match the pattern
+            joints = cmds.ls(pattern, type="joint")
+        else:
+            joints = cmds.ls(pattern) 
 
         # Select the found joints
         cmds.select(joints, r=True)
     else:
+        print(name)
         for sel in selObj:
             all_joints = cmds.listRelatives(sel, allDescendents=True, type="joint")
-            bind_joints = [joint for joint in all_joints if "bind" in joint.lower()]
+            bind_joints = [joint for joint in all_joints if name in joint.lower()]
             current_selection = cmds.ls(selection=True)
             cmds.select(current_selection+bind_joints, r=True)
 
@@ -322,19 +332,21 @@ def CreateFollows():
         if cmds.objExists(tempCstr):
             cmds.connectAttr(f'{flws[i].follower}.Global',f'{tempCstr}.{flws[i].follow}W0')
             
-def CtrlParentCreate(cbcstr):
+def CtrlParentCreate(cbcstr,sz):
+    sz=smallUsefulFct.GetDistLocScale(sz)
     selObj = cmds.ls(selection=True)
     checkboxs=[]
     for cb in cbcstr:
         checkboxs.append(cmds.checkBox(cb, query=True, value=True))
     
     for sel in selObj:
-        Ctrl=cmds.circle(name=f'Ctrl_{sel}',nr=[1,0,0],radius=2)[0]     
+        Ctrl=cmds.circle(name=f'Ctrl_{sel}',nr=[1,0,0],radius=sz)[0]     
         tr_Sel=cmds.xform(sel,translation=True, query=True, worldSpace=True)
         ro_Sel=cmds.xform(sel,rotation=True, query=True, worldSpace=True)
-        cmds.xform(Ctrl, t=tr_Sel, ro=ro_Sel, ws=True)
-
-        cmds.xform(Ctrl,translation=tr_Sel, worldSpace=True)             
+        if checkboxs[5]:
+            cmds.xform(Ctrl, t=tr_Sel, ro=ro_Sel, ws=True)
+        else:
+            cmds.xform(Ctrl,translation=tr_Sel, worldSpace=True)             
         if checkboxs[0]:
             cmds.parentConstraint(Ctrl,sel, maintainOffset=True, weight=1)
         if checkboxs[1]:
@@ -343,6 +355,8 @@ def CtrlParentCreate(cbcstr):
             cmds.orientConstraint(Ctrl,sel, maintainOffset=True, weight=1)
         if checkboxs[3]:
             smallUsefulFct.move2(Ctrl)
+        if checkboxs[4]:
+            smallUsefulFct.offset2(Ctrl)
 
 class FollowElement:
     def __init__(self, follower, follow):
@@ -358,15 +372,19 @@ def findType(var):
 
 
 
-def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
+def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp,cbFollow):
     typeBrute=cmds.optionMenu(cbType, query=True, value=True)
     vartype=findType(typeBrute)
     objUp= cmds.textField(cbobjUp, query=True, text=True)
     selObj = cmds.ls(selection=True)
     nbrJnt=cmds.intField(cbnbjoint, query=True, value=True)
+
     name=cmds.textField(cbName, query=True, text=True)
     grp = cmds.group(empty=True, name=f'Grp_{name}')
-
+    follow=cmds.checkBox(cbFollow, query=True, value=True)
+    if follow:
+        nbfollow=1
+    else:nbfollow=0
     # Attach the joint to the motion path
     for i in range(0,nbrJnt):
         # Create a joint
@@ -396,7 +414,7 @@ def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
                     inverseUp=False,
                     inverseFront=False,
                     bank=False)
-
+        cmds.setAttr(f"{motion_path_node}.follow", nbfollow)  # Enable follow
         # Delete the keyframes on the uValue
         cmds.cutKey(motion_path_node, attribute="uValue", clear=True)
 
@@ -411,15 +429,36 @@ def PathJointContraint(cbnbjoint,cbName,cbType,cbobjUp):
         cmds.setAttr(f"{motion_path_node}.upAxis", 1)     # Y-axis
         cmds.parent(joint,grp)
 
-def Cstr(type):
+def Cstr(type,choix):
     selObj = cmds.ls(selection=True)
-    for i in range(1,len(selObj)):
-        if cmds.objExists(f'{selObj[i]}'):
-            if type == "Scale":
-                cmds.scaleConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
-            if type == "Parent":
-                cmds.parentConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
-            if type == "Point":
-                cmds.pointConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
-            if type == "Orient":
-                cmds.orientConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+    checkboxs=[]
+    for cb in type:
+        checkboxs.append(cmds.checkBox(cb, query=True, value=True))
+    if choix==0:
+        for i in range(1,len(selObj)):
+            if cmds.objExists(f'{selObj[i]}'):
+                if checkboxs[3]:
+                    cmds.scaleConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+                if checkboxs[0]:
+                    cmds.parentConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+                if checkboxs[1]:
+                    cmds.pointConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+                if checkboxs[2]:
+                    cmds.orientConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
+    
+    if choix==1:
+        if len(selObj)%2 == 0:
+            i=0
+            while i < len(selObj):
+                if cmds.objExists(f'{selObj[i+1]}'):
+                    if checkboxs[3]:
+                        cmds.scaleConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                    if checkboxs[0]:
+                        cmds.parentConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                    if checkboxs[1]:
+                        cmds.pointConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                    if checkboxs[2]:
+                        cmds.orientConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                i=i+2
+                print(f'{i}      {len(selObj)}')
+        

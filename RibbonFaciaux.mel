@@ -108,6 +108,11 @@ proc Ribb_window()
             button -label "Connect mod 2" -bgc 0.675 0.663 0.843 -c "ctrDrvJnt()";
             button -label "Connect 1 All" -bgc 0.675 0.663 0.843 -c "connectAll()";
         setParent ..;
+        rowColumnLayout -numberOfColumns 2 -cw 1 80 -cw 2 100 -cs 1 20 -cs 2 5 ;
+        //Select first Ctrl/ Drv/ Ctlr/Ctrl
+            text -label "Connect Ctrl DrvJnt";
+            button -label "Find" -bgc 0.675 0.663 0.843 -c "ctrDrvJnt()";
+        setParent ..;
 
 
 
@@ -145,9 +150,10 @@ proc RibbFct(string $type)
     string $temcurve1=$reb01[0];
     string $temcurve2=$reb02[0];
     string $loftSurface[] = `loft -ch 1 -u 1 -c 0 -ar 1 -d 1 -ss 1 -rn 0 -po 0 -n $LoftName -rsn true $temcurve1 $temcurve2`;
+    string $middleCurve[] = `duplicateCurve -ch 0 -rn 0 -local 0 ($loftSurface[0] +".u[0.5]")`;
+    $middleCurve[0]=`rename $middleCurve[0] ("Curve_"+$NameFinal+"_Middle")`;
 
-
-    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $temcurve1Base $temcurve2Base `;
+    $GrpConst=`group -name ("Grp_construction_"+$NameFinal) $temcurve1 $temcurve2 $temcurve1Base $temcurve2Base $middleCurve[0]`;
 
 
     select -r $middleCurve[0] $loftSurface[0];
@@ -519,7 +525,7 @@ proc ctrDrvJnt()
                 {
                     // Sanitize the name by replacing '|' with '_'
                     string $sanitizedName = `substituteAllString $selected[$i] "|" "_"`;
-                    string $nameMult = "multDiv_Rotate_" + $sanitizedName;
+                    string $nameMult = "multDiv_Translate_" + $sanitizedName;
 
                     // Create a multiplyDivide node and assign it to a variable
                     string $multDivNode = `createNode multiplyDivide -name $nameMult`;
@@ -545,7 +551,7 @@ proc ctrDrvJnt()
                 {
                     // Sanitize the name by replacing '|' with '_'
                     string $sanitizedName = `substituteAllString $selected[$i] "|" "_"`;
-                    string $nameMult = "multDiv_Translate_" + $sanitizedName;
+                    string $nameMult = "multDiv_Rotate_" + $sanitizedName;
                     string $multDivNode = `createNode multiplyDivide -name $nameMult`;
 
                     connectAttr($selected[$i]+".rotate") ($multDivNode+".input1");

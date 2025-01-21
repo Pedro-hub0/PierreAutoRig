@@ -43,10 +43,11 @@ def create_window():
     cmds.separator(h=8)
 
     cmds.text(label=" JntOnRivet ", font = "boldLabelFont" , w = 300, align = "left")
-    cmds.text(label=" - Create 2 curves, Rebuild it. Use the script. Bind the curve to the head joints " , w = 300, align = "left")
+    cmds.text(label=" - Create 2 curves, Rebuild it. Use the script." , w = 300, align = "left")
     cmds.text(label=" - Bind the curve to the head joints " , w = 300, align = "left")
     cmds.text(label=" - Delete historic non deformer on the curves " , w = 300, align = "left")
     cmds.text(label=" - Bind the Joints to the geo " , w = 300, align = "left")
+    cmds.text(label=" - Bind_Zip_Lips_Dwn_0 " , w = 300, align = "left")
 
     cmds.separator(h=5)
 
@@ -104,19 +105,19 @@ def createJnt():
 
         
 def createBlendRivet(speed,l):
-    if not cmds.objExists("Zip_Ctrl"):
-        Ctrls=cmds.circle(name=f'Zip_Ctrl',nr=[1,0,0])[0] 
-    attrZipL="Zip_Ctrl.Zip_L"
-    attrZipR="Zip_Ctrl.Zip_R"
+    if not cmds.objExists("Ctrl_Zip"):
+        Ctrls=cmds.circle(name=f'Ctrl_Zip',nr=[1,0,0])[0] 
+    attrZipL="Ctrl_Zip.Zip_L"
+    attrZipR="Ctrl_Zip.Zip_R"
     sp=cmds.floatField(speed, query=True, value=True) 
     length=cmds.intField(l, query=True, value=True)   
     for i in range(1,length+1):
-        if not cmds.attributeQuery(f'Zip_R', node='Zip_Ctrl', exists=True):
-            cmds.addAttr('Zip_Ctrl', longName=f'Zip_R',attributeType='float', defaultValue=0,min=0,max=1,keyable=True)
-        if not cmds.attributeQuery(f'Zip_L', node='Zip_Ctrl', exists=True):
-            cmds.addAttr('Zip_Ctrl', longName=f'Zip_L',attributeType='float', defaultValue=0,min=0,max=1,keyable=True)
-        if not cmds.attributeQuery(f'Zip_Avg', node='Zip_Ctrl', exists=True):
-            cmds.addAttr('Zip_Ctrl', longName=f'Zip_Avg',attributeType='float', defaultValue=0.5,min=0,max=1,keyable=True)
+        if not cmds.attributeQuery(f'Zip_R', node='Ctrl_Zip', exists=True):
+            cmds.addAttr('Ctrl_Zip', longName=f'Zip_R',attributeType='float', defaultValue=0,min=0,max=1,keyable=True)
+        if not cmds.attributeQuery(f'Zip_L', node='Ctrl_Zip', exists=True):
+            cmds.addAttr('Ctrl_Zip', longName=f'Zip_L',attributeType='float', defaultValue=0,min=0,max=1,keyable=True)
+        if not cmds.attributeQuery(f'Zip_Avg', node='Ctrl_Zip', exists=True):
+            cmds.addAttr('Ctrl_Zip', longName=f'Zip_Avg',attributeType='float', defaultValue=0.5,min=0,max=1,keyable=True)
                
         ##NODES
         zipremap01= cmds.createNode('setRange', name=f'Zip_setRange_{i}')
@@ -141,7 +142,7 @@ def createBlendRivet(speed,l):
         cmds.connectAttr(attrZipL,f'{zipremap01}.valueY')
         cmds.connectAttr(f'Riv_Dwn_0{i}.translate',f'{blendavg}.color2')
         cmds.connectAttr(f'Riv_Up_0{i}.translate',f'{blendavg}.color1')
-        cmds.connectAttr(f'Zip_Ctrl.Zip_Avg',f'{blendavg}.blender')
+        cmds.connectAttr(f'Ctrl_Zip.Zip_Avg',f'{blendavg}.blender')
 
         #System L R
         cmds.connectAttr(f'{zipremap01}.outValueX',f'{pmaLR}.input1D[0]')
@@ -196,9 +197,9 @@ def createBlend(speed,l,obj):
     pocDwn=[]  
     JntUp=[]
     JntDwn=[]    
-    if not cmds.objExists("Zip_Ctrl"):
-        Ctrl_Zip=cmds.circle(name=f'Zip_Ctrl',nr=[1,0,0])[0] 
-    else:Ctrl_Zip=f'Zip_Ctrl'
+    if not cmds.objExists("Ctrl_Zip"):
+        Ctrl_Zip=cmds.circle(name=f'Ctrl_Zip',nr=[1,0,0])[0] 
+    else:Ctrl_Zip=f'Ctrl_Zip'
     attrZipL=f"{Ctrl_Zip}.Zip_L"
     attrZipR=f"{Ctrl_Zip}.Zip_R"
 
@@ -208,8 +209,18 @@ def createBlend(speed,l,obj):
     grp_JntsZip = cmds.group(empty=True, name="grp_Bind_Lips_Zips")
     grp_JntsZipUp = cmds.group(empty=True, name="grp_Bind_Lips_Zips_Up")
     grp_JntsZipDwn = cmds.group(empty=True, name="grp_Bind_Lips_Zips_Dwn")
+    grp_globalZip = cmds.group(empty=True, name="grp_Zip_RigSystem")
+    if obj =='Rivet':
+        grp_RivUp = cmds.group(empty=True, name="grp_Riv_Lips_Zips_Up")
+        grp_RivDwn = cmds.group(empty=True, name="grp_Riv_Lips_Zips_Dwn")
+        cmds.parent(grp_RivUp,grp_globalZip)    
+        cmds.parent(grp_RivDwn,grp_globalZip)
+
     cmds.parent(grp_JntsZipUp,grp_JntsZip)
     cmds.parent(grp_JntsZipDwn,grp_JntsZip)
+    cmds.parent(grp_JntsZip,grp_globalZip)
+    cmds.parent(Ctrl_Zip,grp_globalZip)
+
 
 
 
@@ -218,12 +229,13 @@ def createBlend(speed,l,obj):
         JntDwn.append(cmds.joint(n=f'Bind_Zip_Lips_Dwn_0{i}'))
         cmds.select(clear=True)
         JntUp.append(cmds.joint(n=f'Bind_Zip_Lips_Up_0{i}'))
-        if obj == 'Curve':
-            cmds.parent(JntDwn[i-1],grp_JntsZipDwn)
-            cmds.parent(JntUp[i-1],grp_JntsZipUp)
-        elif obj =='Rivet':
-            cmds.parent(JntDwn[i-1],f'Riv_Dwn_0{i}')
-            cmds.parent(JntUp[i-1],f'Riv_Up_0{i}')
+        
+        cmds.parent(JntDwn[i-1],grp_JntsZipDwn)
+        cmds.parent(JntUp[i-1],grp_JntsZipUp)
+        if obj =='Rivet':
+            cmds.parent(f'Riv_Dwn_0{i}',grp_RivDwn)
+            cmds.parent(f'Riv_Up_0{i}',grp_RivUp)
+  
         modules.smallUsefulFct.move2(JntDwn[i-1])
         modules.smallUsefulFct.move2(JntUp[i-1])
 
