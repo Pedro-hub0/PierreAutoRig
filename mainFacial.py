@@ -43,11 +43,19 @@ def create_window():
     cmds.separator(h=8)
 
     cmds.text(label=" JntOnRivet ", font = "boldLabelFont" , w = 300, align = "left")
+    cmds.text(label="CURVE VERSION" , w = 300, align = "left")
     cmds.text(label=" - Create 2 curves, Rebuild it. Use the script." , w = 300, align = "left")
     cmds.text(label=" - Bind the curve to the head joints " , w = 300, align = "left")
     cmds.text(label=" - Delete historic non deformer on the curves " , w = 300, align = "left")
     cmds.text(label=" - Bind the Joints to the geo " , w = 300, align = "left")
-    cmds.text(label=" - Bind_Zip_Lips_Dwn_0 " , w = 300, align = "left")
+    cmds.text(label="RIV VERSION" , w = 300, align = "left")
+    cmds.text(label=" - Dupplicate Geo." , w = 300, align = "left")
+    cmds.text(label=" - Copy the skin of the original go to the dupplicate one " , w = 300, align = "left")
+    cmds.text(label=" - Add rivet on the mouth Geo. Up an down " , w = 300, align = "left")
+    cmds.text(label=" - With the name Riv_Up_0... And Riv_Awn_0...   " , w = 300, align = "left")
+    cmds.text(label=" - Click on Blend " , w = 300, align = "left")
+    cmds.text(label="RIV VERSION" , w = 300, align = "left")
+    cmds.text(label=" - Riv_Up_0i " , w = 300, align = "left")
 
     cmds.separator(h=5)
 
@@ -63,10 +71,10 @@ def create_window():
     cmds.setParent('..')
 
     cmds.frameLayout(label='RIVET VERSION',w = 300, collapsable=True, collapse=True)
-    cmds.rowLayout(numberOfColumns=4, columnWidth4=[100,100,100,100])
-    cmds.button(label='Rivets Up', command=lambda x:modules.RivetGael.gael_Rivet("Riv_Up_"))
-    cmds.button(label='Rivets Dwn', command=lambda x:modules.RivetGael.gael_Rivet("Riv_Dwn_"))
-    cmds.button(label='Jnt', command=lambda x:createJnt())
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
+    cmds.button(label='Rivets Up', command=lambda x:modules.RivetGael.gael_Rivet("Riv_Up_0"))
+    cmds.button(label='Rivets Dwn', command=lambda x:modules.RivetGael.gael_Rivet("Riv_Dwn_0"))
+    #cmds.button(label='Jnt', command=lambda x:createJnt())
     cmds.button(label='Blend', command=lambda x:createBlend(speed,number,'Rivet'))
     cmds.setParent('..')
     cmds.setParent('..')
@@ -326,7 +334,7 @@ def createBlend(speed,l,obj):
     if obj == "Curve":
         # Delete non-deformer history
         cmds.bakePartialHistory(CurveUp, prePostDeformers=True)
-        cmds.bakePartialHistory(CurveUp, prePostDeformers=True)
+        cmds.bakePartialHistory(CurveDwn, prePostDeformers=True)
 
 
 

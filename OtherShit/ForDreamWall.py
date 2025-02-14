@@ -55,6 +55,7 @@ def matchIkFk(value,txt_n):
     #Transform
     rotate_Ik=[]
     rotate_Fk=[]
+    rotatectrlFk=[]
     translate_Ik=[]
     translate_Fk=[] 
     pv_Ctrl=f'{txt_namespace}Pv_{objName}_{side}'
@@ -74,8 +75,11 @@ def matchIkFk(value,txt_n):
         Dummy_Translate=cmds.xform(f'Dummy_Loc_{objName}_{side}', q=True, t=True, ws=True)
 
     if isIk ==1:
-
-        cmds.xform(ik_Ctrl, translation=translate_Fk[2], rotation=rotate_Fk[2], worldSpace=True)
+        if objName == "Leg":
+            cmds.xform(ik_Ctrl, translation=translate_Fk[2], rotation=rotatectrlFk[2], worldSpace=True)
+        else:
+            cmds.xform(ik_Ctrl, translation=translate_Fk[2], rotation=rotate_Fk[2], worldSpace=True)
+        rotatectrlFk
         if cmds.objExists(f'Dummy_Loc_{objName}_{side}'):
             cmds.xform(pv_Ctrl, translation=Dummy_Translate, worldSpace=True)
         else:

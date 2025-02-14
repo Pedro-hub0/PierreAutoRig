@@ -482,9 +482,9 @@ def MyPbFct(ob,side,Ctrl,ik,fk):
         if not conn:
             cmds.connectAttr(Ctrl+".Switch_Ik_Fk",f"CTRL_{ob}_{side}.visibility")
    #Pair Blend BindHand
-    if ob == "Arm":
-        if f'Bind_Hand_{side}':
-            pB_Bind = cmds.createNode("pairBlend", name=f'PB_Hand_{side}')
-            cmds.connectAttr(fk[2] + ".rotate",pB_Bind + ".inRotate1")
-            cmds.connectAttr(pB_Bind +".outRotate",f'Bind_Hand_{side}.rotate')
-            cmds.connectAttr(Ctrl+".Switch_Ik_Fk",pB_Bind + ".weight")
+   # if ob == "Arm":
+   #     if f'Bind_Hand_{side}':
+   #         pB_Bind = cmds.createNode("pairBlend", name=f'PB_Hand_{side}')
+   #         cmds.connectAttr(fk[2] + ".rotate",pB_Bind + ".inRotate1")
+   #         cmds.connectAttr(pB_Bind +".outRotate",f'Bind_Hand_{side}.rotate')
+   #         cmds.connectAttr(Ctrl+".Switch_Ik_Fk",pB_Bind + ".weight")

@@ -461,4 +461,57 @@ def Cstr(type,choix):
                         cmds.orientConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                 i=i+2
                 print(f'{i}      {len(selObj)}')
-        
+    
+def JntOnCurve_Poc(l):
+
+
+    selection=cmds.ls(selection=True)
+    CurveUp=selection[0]
+
+    length=cmds.intField(l, query=True, value=True)   
+    pocUp=[]
+    JntUp=[]
+ 
+    for y in range(0,len(selection)):
+        CurveUp=selection[y]
+        size=y*length
+        print(f'{size} AND {CurveUp}')
+        ##Organise
+        grp_JntsZipUp = cmds.group(empty=True, name=f"grp_Bind_{CurveUp}")
+        for i in range(1,length+1):
+            print(f'{size+i-1} AND gfdsgd')
+            pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_{i}'))
+            cmds.select(clear=True)
+            JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_0{i}'))
+            
+            cmds.parent(JntUp[size+i-1],grp_JntsZipUp)
+            smallUsefulFct.move2(JntUp[size+i-1])
+
+
+            val3=(i-1)*(1/(length-1))
+            
+            cmds.connectAttr(f'{CurveUp}.worldSpace[0]',f'{pocUp[size+i-1]}.inputCurve')
+            cmds.setAttr(f"{pocUp[size+i-1]}.parameter",val3)
+
+            #Connect to joints
+
+            cmds.connectAttr(f'{pocUp[size+i-1]}.position',f'{JntUp[size+i-1]}_Move.translate')
+
+    
+
+
+
+
+
+def initialiseRemap(n,a,b,c,d,axe):
+        cmds.setAttr(f'{n}.min{axe}', a)
+        cmds.setAttr(f'{n}.max{axe}', b)
+        cmds.setAttr(f'{n}.oldMin{axe}', c)
+        cmds.setAttr(f'{n}.oldMax{axe}', d)
+
+def renameRiv(n):
+    selObj = cmds.ls(selection=True)
+    for i in range(0,len(selObj)):
+        cmds.rename(selObj[i],f'{n}_0{i+1}')
+
+

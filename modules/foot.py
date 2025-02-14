@@ -364,6 +364,10 @@ def ConnectFoot():
     cmds.setAttr(f"{remapFRPivotRotX}.value[1].value_FloatValue",0)
     cmds.setAttr(f"{remapFRPivotRotX}.value[1].value_Interp", 1)
 
+    cmds.setAttr(f"{remapFRToeRotX}.value[1].value_Position", 0.5)
+    cmds.setAttr(f"{remapFRToeRotX}.value[1].value_FloatValue",0)
+    cmds.setAttr(f"{remapFRToeRotX}.value[1].value_Interp", 1)
+
     cmds.setAttr(f"{remapHeelRotY}.value[3].value_Position", 0.5)
     cmds.setAttr(f"{remapHeelRotY}.value[3].value_Interp", 1)
 
