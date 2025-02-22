@@ -77,7 +77,7 @@ def create_window():
     cmds.button(label='Create Locs Scale', command=lambda x:tools.LocScale(),width=150)
     cmds.button(label='Get Scale', command=lambda x:smallUsefulFct.GetDistLocScale(sizeCtrlArm),width=150)
     cmds.setParent('..')
-
+    cb_bbox= cmds.checkBox(label="Help Place Loc",v=True)
 
     ########################### FULL AUTO ##############################
     cmds.separator(h=8)
@@ -109,7 +109,7 @@ def create_window():
     cmds.intField(cb_ToeNumber2,value=5, edit=True, enable=False)
 
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Locs', command=lambda x:createLocsFulllAuto(sizeCtrlArm,cb_ToeNumber2,cb_Toe2),width=100)
+    cmds.button(label='Create Locs', command=lambda x:createLocsFulllAuto(sizeCtrlArm,cb_ToeNumber2,cb_Toe2,cb_bbox),width=100)
     cmds.button(label='Create Skeleton', command=lambda x:createSkeleton(sizeCtrlArm,fullspineIk,fullspineFk,fullneckFk,cb_RibbonFullAuto,cb_ToeNumber2,cb_Toe2),width=100)
     cmds.setParent('..') 
     cmds.setParent('..')
@@ -132,7 +132,7 @@ def create_window():
     spineFk = cmds.intField(value=3,width=75)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Locs', command=lambda x:spine.creatLocsSpine(),width=150)
+    cmds.button(label='Create Locs', command=lambda x:spine.creatLocsSpine(cb_bbox),width=150)
     cmds.button(label='Spine', command=lambda x:spine.createSpine(spineIk,spineFk,sizeCtrlArm),width=150)
     cmds.setParent('..')
     cmds.setParent('..')
@@ -141,7 +141,7 @@ def create_window():
     cmds.separator(h=3)
     cmds.text(label="Create 3 Joint for your Arm / Leg", font = "boldLabelFont" , w = 50, align = "left")
     cmds.text(label="Select Joint Parent : Name Arm/Leg_L/R", font = "boldLabelFont" , w = 50, align = "left")
-    cmds.button(label='Create Joints', command=lambda x:armLeg.createJnts(sizeCtrlArm),width=100)
+    cmds.button(label='Create Joints', command=lambda x:armLeg.createJnts(sizeCtrlArm,cb_bbox),width=100)
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
     cmds.button(label='Freeze And Orient', command=lambda x:armLeg.FreezeOrient(),width=100)
     cmds.button(label='Ik_Fk_Arm/Leg', command=lambda x:armLeg.createIkFk(sizeCtrlArm),width=100)
@@ -153,7 +153,7 @@ def create_window():
     cmds.frameLayout(label='Clavicle', collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cmds.button(label='Create Loc', command=lambda x:clavicule.locClavicule(),width=100)
+    cmds.button(label='Create Loc', command=lambda x:clavicule.locClavicule(cb_bbox),width=100)
     cmds.button(label='Create Clavicle', command=lambda x:clavicule.createClavicule(sizeCtrlArm),width=100)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
@@ -176,7 +176,7 @@ def create_window():
     cmds.intField(cb_ToeNumber,value=5, edit=True, enable=False)
 
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[80, 100,100])
-    cmds.button(label=' Creates Locs', command=lambda x:foot.createLocs(cb_ToeNumber,cb_Toe),width=80)
+    cmds.button(label=' Creates Locs', command=lambda x:foot.createLocs(cb_ToeNumber,cb_Toe,cb_bbox),width=80)
     cmds.button(label=' Organise Locs', command=lambda x:foot.OrganiseLocs(sizeCtrlArm,cb_ToeNumber,cb_Toe),width=110)
     cmds.button(label='  Nodale', command=lambda x:foot.ConnectFoot(),width=80)
     cmds.setParent('..')
@@ -345,6 +345,7 @@ def create_window():
 
 
     cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
+    cmds.separator(h=5)
     cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("bind",True),width=300)
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
     cnNameFind = cmds.textField(placeholderText="Find",text="Drv",w=100)
@@ -407,15 +408,25 @@ def create_window():
     cmds.showWindow(window_name)
 
 
-def createLocsFulllAuto(sz,cbnbToe,CbToe):
-    spine.creatLocsSpine()
-    armLeg.createJnts(sz)
-    cmds.select("Arm_L")
-    clavicule.locClavicule()
+def createLocsFulllAuto(sz,cbnbToe,CbToe,cb_bbox):
+    sl=cmds.ls(selection=True)
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
+    #If Auto Shape
+    if checkBbox:   
+        cmds.select(sl[0])
+    else :
+        cmds.select(clear=True)
+        
+    spine.creatLocsSpine(cb_bbox)
+    if checkBbox:   
+        cmds.select(sl[0])
+    armLeg.createJnts(sz,cb_bbox)
+    cmds.select(["Arm_L",sl[0]])
+    clavicule.locClavicule(cb_bbox)
     cmds.select("Arm_L")
     hand.locHand(sz)
-    cmds.select("Leg_L")
-    foot.createLocs(cbnbToe,CbToe)
+    cmds.select(["Leg_L",sl[0]])
+    foot.createLocs(cbnbToe,CbToe,cb_bbox)
     head.CreatelocHeadStructure(True)
     head.LocNeck()
 

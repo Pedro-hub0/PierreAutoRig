@@ -1,17 +1,24 @@
 import maya.cmds as cmds
 import smallUsefulFct
 import math
+import tools
+import importlib
+importlib.reload(tools)
  
  ###################################
 ###       CREATE Clavicule     ####
 ###################################
 
-def locClavicule():
+def locClavicule(cb_bbox):
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
     selObj = cmds.ls(selection=True)
     if len(selObj) <1:
         raise ValueError("You need to select just 1 thing which finish by L or R")
     side=selObj[0][-1]
     tempLoc=cmds.spaceLocator(name=f'Temp_Loc_Clav_{side}')[0]
+    if checkBbox and len(selObj)>1:
+        tClav=tools.getTranslatePosition('clavicle',[selObj[1],0])
+        cmds.xform(tempLoc, t=tClav)
     if cmds.objExists('Grp_temp_Locs') and cmds.listRelatives('Grp_temp_Locs',parent=True)==None:
         cmds.parent(tempLoc,'Grp_temp_Locs')
 

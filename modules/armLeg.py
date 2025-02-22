@@ -1,32 +1,50 @@
 import maya.cmds as cmds
 import sys
+import math
 import os
 # Get the folder containing the current script
 script_dir = os.path.dirname(__file__)
-
 # Add that folder to sys.path
 sys.path.append(script_dir)
+import importlib
+import tools
 import smallUsefulFct
 import foot
-import math
-import importlib
+
+importlib.reload(tools)
 importlib.reload(smallUsefulFct)
 importlib.reload(foot)
+
 ###################################
 ###         CREATE IK FK       ####
 ###################################
-def createJnts(sz):
+def createJnts(sz,cb_bbox):
+    sel=cmds.ls(selection=True)
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
     cmds.select(clear=True)
     jntLeg=[]
     jntArm=[]
     size=smallUsefulFct.GetDistLocScale(sz)*3
-    for i in range(0,3): 
-        moveNumber=(i*size,0,0)
-        moveNumber2=(0,(-i)*size,0)
-        jntArm.append(cmds.joint(n=f'Arm_L',p=moveNumber))
-        cmds.select(clear=True)
-        jntLeg.append(cmds.joint(n=f'Leg_L',p=moveNumber2))
-        cmds.select(clear=True)
+    
+    if checkBbox and len(sel)>0:
+        nomArm=['arm','elbow','hand']
+        nomLeg=['hip','knee','foot']
+        for i in range(0,3): 
+            tArm=tools.getTranslatePosition(nomArm[i],sel)
+            tLeg=tools.getTranslatePosition(nomLeg[i],sel)
+            jntArm.append(cmds.joint(n=f'Arm_L',p=tArm))
+            cmds.select(clear=True)
+            jntLeg.append(cmds.joint(n=f'Leg_L',p=tLeg))
+            cmds.select(clear=True)
+        
+    else:
+        for i in range(0,3): 
+            moveNumber=(i*size,0,0)
+            moveNumber2=(0,(-i)*size,0)
+            jntArm.append(cmds.joint(n=f'Arm_L',p=moveNumber))
+            cmds.select(clear=True)
+            jntLeg.append(cmds.joint(n=f'Leg_L',p=moveNumber2))
+            cmds.select(clear=True)
 
     for i in range(2,0,-1): 
         cmds.parent(jntArm[i],jntArm[i-1])

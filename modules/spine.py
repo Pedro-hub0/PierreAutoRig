@@ -2,15 +2,31 @@ import maya.cmds as cmds
 import smallUsefulFct
 import tools
 import math
+import importlib
+
+importlib.reload(smallUsefulFct)
+importlib.reload(tools)
+
 
 
 ###################################
 ###        Create Spine        ####
 ###################################    
-def creatLocsSpine():
-    loc=cmds.spaceLocator(n=f'Loc_Spine_Shoulder')
-    loc=cmds.spaceLocator(n=f'Loc_Spine_Root')
+def creatLocsSpine(cb_bbox):
+    sel=cmds.ls(selection=True)
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
+    locShoulder=cmds.spaceLocator(n=f'Loc_Spine_Shoulder')
+    locSpine=cmds.spaceLocator(n=f'Loc_Spine_Root')
+
+    print(len(sel))
+    if checkBbox and len(sel)>0:
+        tRoot=tools.getTranslatePosition('root',sel)
+        tShoulder=tools.getTranslatePosition('shoulder',sel)
+        cmds.xform(locSpine, translation=tRoot, worldSpace=True)  
+        cmds.xform(locShoulder, translation=tShoulder, worldSpace=True)  
+
     cmds.parent('Loc_Spine_Shoulder','Loc_Spine_Root')
+
 
 def createSpine(spineIk,spineFk,sz) :
     nbIkJnt=cmds.intField(spineIk, query=True, value=True)

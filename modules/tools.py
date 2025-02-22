@@ -515,3 +515,83 @@ def renameRiv(n):
         cmds.rename(selObj[i],f'{n}_0{i+1}')
 
 
+def bboxsize(sel):
+    bbox = cmds.exactWorldBoundingBox(sel[0])
+
+    width = bbox[3] - bbox[0]   # X size
+    height = bbox[4] - bbox[1]  # Y size
+    depth = bbox[5] - bbox[2]   # Z size
+    size=[width,height,depth]
+    return size
+
+def multTab(tab,valeur):
+    newTab=[]
+    for t in tab:
+        print(f'tab :{t}')
+        newTab.append(t*valeur)
+    return newTab
+
+def getTranslatePosition(nom,sel):
+    h=bboxsize(sel)[1]/8.0
+    t=getattr(positions,nom)
+    result=multTab(t,h)
+    return result
+
+class positions:
+   
+    root= [0.0,4.0,0.0]
+    shoulder= [0.0,6.7,0.0]
+    arm= [1.0,6.7,0.0]
+
+    elbow= [2.5,6.7,0.0]
+
+    hand= [3.5,6.7,0.0]
+
+    hip=[0.5,3.8,0.0]
+    knee= [0.5,2.0,0.0]
+    foot= [0.5,0.3,0.0]
+
+    ball= [0.5,0.1,0.65]
+    toe= [0.5,0.1,1]
+    heel=[0.5,0,0]
+    bank_int=[0.2,0,0.5]
+    bank_ext=[0.7,0,0.5]
+    toe=[0.5,0,1]
+    
+    clavicle=[0.5,6.5,0.5]
+
+    def setRoot(pos):
+        root=pos
+    def setShoulder(pos):
+        shoulder=pos
+    def setArm(pos):
+        arm=pos
+    def setElbow(pos):
+        elbow=pos
+    def setHand(pos):
+        hand=pos
+    def setHip(pos):
+        hip=pos
+    def setKnee(pos):
+        knee=pos
+    def setFoot(pos):
+        foot=pos
+    def setClavicle(pos):
+        clavicle=pos
+    def setBall(pos):
+        ball=pos
+    def setToe(pos):
+        toe=pos
+    def setHeel(pos):
+        heel=pos
+    def setBankInt(pos):
+        bank_int=pos
+    def setBankExt(pos):
+        bank_ext=pos
+    def setToe(pos):
+        toe=pos
+
+
+
+
+AdultePos=positions()

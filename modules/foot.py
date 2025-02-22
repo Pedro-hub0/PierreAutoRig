@@ -1,16 +1,19 @@
 import maya.cmds as cmds
 import smallUsefulFct
 import math
+import tools
 import os
 import importlib
 importlib.reload(smallUsefulFct)
+importlib.reload(tools)
 
 
 #############################
 #     FONCTIONS FOOT        #
 #############################
 
-def createLocs(cb_toeNumber,cb_Toe):
+def createLocs(cb_toeNumber,cb_Toe,cb_bbox):
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
     selObj = cmds.ls(selection=True)
     isToe=cmds.checkBox(cb_Toe, query=True, value=True)
     toeNumber=cmds.intField(cb_toeNumber, query=True, value=True)
@@ -18,7 +21,7 @@ def createLocs(cb_toeNumber,cb_Toe):
         raise ValueError("You need to select something which finish by L or R ")
     side=selObj[0][-1]
     locator_names = ["Loc_Heel_"+side, "Loc_Ball_"+side,"Loc_Bank_Int_"+side,"Loc_Bank_Ext_"+side]
-
+    loc_name_position=["heel","ball","bank_int","bank_ext","toe"]
     #initialise names (can be optimised because it's created in 2 def)
    
     locator_names.append(f"Loc_Toe_{side}")
@@ -30,8 +33,13 @@ def createLocs(cb_toeNumber,cb_Toe):
     
     
     folder_names = ["Pivot_Ball_"+side, "Pivot_Toe_"+side, "Pivot_Toe_"+side+"_Offset"]
-    for name in locator_names:
-        cmds.spaceLocator(name=name)[0]
+    for i in range(0,len(locator_names)):
+        tempLoc=cmds.spaceLocator(name=locator_names[i])[0]
+        if checkBbox and len(selObj)>0:
+            tloc=tools.getTranslatePosition(loc_name_position[i],[selObj[1]])
+            cmds.xform(tempLoc, t=tloc)
+
+        cmds.xform()
     for name in folder_names:
         cmds.group(empty=True, name=name)
 
@@ -364,9 +372,9 @@ def ConnectFoot():
     cmds.setAttr(f"{remapFRPivotRotX}.value[1].value_FloatValue",0)
     cmds.setAttr(f"{remapFRPivotRotX}.value[1].value_Interp", 1)
 
-    cmds.setAttr(f"{remapFRToeRotX}.value[1].value_Position", 0.5)
-    cmds.setAttr(f"{remapFRToeRotX}.value[1].value_FloatValue",0)
-    cmds.setAttr(f"{remapFRToeRotX}.value[1].value_Interp", 1)
+    cmds.setAttr(f"{remapFRToeRotX}.value[0].value_Position", 0.5)
+    cmds.setAttr(f"{remapFRToeRotX}.value[0].value_FloatValue",0)
+    cmds.setAttr(f"{remapFRToeRotX}.value[0].value_Interp", 1)
 
     cmds.setAttr(f"{remapHeelRotY}.value[3].value_Position", 0.5)
     cmds.setAttr(f"{remapHeelRotY}.value[3].value_Interp", 1)
