@@ -173,7 +173,6 @@ def selectJnt(name,isOk):
         # Select the found joints
         cmds.select(joints, r=True)
     else:
-        print(name)
         for sel in selObj:
             all_joints = cmds.listRelatives(sel, allDescendents=True, type="joint")
             bind_joints = [joint for joint in all_joints if name in joint.lower()]
@@ -460,7 +459,6 @@ def Cstr(type,choix):
                     if checkboxs[2]:
                         cmds.orientConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                 i=i+2
-                print(f'{i}      {len(selObj)}')
     
 def JntOnCurve_Poc(l):
 
@@ -475,11 +473,9 @@ def JntOnCurve_Poc(l):
     for y in range(0,len(selection)):
         CurveUp=selection[y]
         size=y*length
-        print(f'{size} AND {CurveUp}')
         ##Organise
         grp_JntsZipUp = cmds.group(empty=True, name=f"grp_Bind_{CurveUp}")
         for i in range(1,length+1):
-            print(f'{size+i-1} AND gfdsgd')
             pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_{i}'))
             cmds.select(clear=True)
             JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_0{i}'))
@@ -527,71 +523,85 @@ def bboxsize(sel):
 def multTab(tab,valeur):
     newTab=[]
     for t in tab:
-        print(f'tab :{t}')
         newTab.append(t*valeur)
     return newTab
 
 def getTranslatePosition(nom,sel):
-    h=bboxsize(sel)[1]/8.0
-    t=getattr(positions,nom)
+    h=bboxsize(sel)[1]/AdultePos.get_position('ratio')
+    t=AdultePos.get_position(nom)
     result=multTab(t,h)
     return result
 
-class positions:
-   
-    root= [0.0,4.0,0.0]
-    shoulder= [0.0,6.7,0.0]
-    arm= [1.0,6.7,0.0]
+class Positions:
+    def __init__(self,ratio, root, shoulder, arm, elbow, hand, hip, knee, foot, ball, toe, heel, bank_int, bank_ext, clavicle,head01,head02,JawUp,JawDwn,Eye,EyelidUp,EyelidDwn):
+        """Initialize positions with fully custom values."""
+        self.positions = {
+            "ratio":ratio,
 
-    elbow= [2.5,6.7,0.0]
+            "root": root,
+            "shoulder": shoulder,
 
-    hand= [3.5,6.7,0.0]
+            "arm": arm,
+            "elbow": elbow,
+            "hand": hand,
 
-    hip=[0.5,3.8,0.0]
-    knee= [0.5,2.0,0.0]
-    foot= [0.5,0.3,0.0]
+            "hip": hip,
+            "knee": knee,
+            "foot": foot,
 
-    ball= [0.5,0.1,0.65]
-    toe= [0.5,0.1,1]
-    heel=[0.5,0,0]
-    bank_int=[0.2,0,0.5]
-    bank_ext=[0.7,0,0.5]
-    toe=[0.5,0,1]
+            "ball": ball,
+            "toe": toe,
+            "heel": heel,
+            "bank_int": bank_int,
+            "bank_ext": bank_ext,
+            "clavicle": clavicle,
+
+            "head01": head01,
+            "head02": head02,
+            "JawUp": JawUp,
+            "JawDwn": JawDwn,
+            "Eye": Eye,
+            "EyelidUp":EyelidUp,
+            "EyelidDwn":EyelidDwn
+
+        }
     
-    clavicle=[0.5,6.5,0.5]
-
-    def setRoot(pos):
-        root=pos
-    def setShoulder(pos):
-        shoulder=pos
-    def setArm(pos):
-        arm=pos
-    def setElbow(pos):
-        elbow=pos
-    def setHand(pos):
-        hand=pos
-    def setHip(pos):
-        hip=pos
-    def setKnee(pos):
-        knee=pos
-    def setFoot(pos):
-        foot=pos
-    def setClavicle(pos):
-        clavicle=pos
-    def setBall(pos):
-        ball=pos
-    def setToe(pos):
-        toe=pos
-    def setHeel(pos):
-        heel=pos
-    def setBankInt(pos):
-        bank_int=pos
-    def setBankExt(pos):
-        bank_ext=pos
-    def setToe(pos):
-        toe=pos
+    def get_position(self, name):
+        """Returns the position of the requested joint."""
+        return self.positions.get(name, None)
 
 
 
 
-AdultePos=positions()
+AdultePos=Positions(    
+    ratio=8.0,
+
+    root= [0.0,4.35,0.0],
+    shoulder= [0.0,6.7,0.0],
+
+    arm=    [1.0,6.5,-0.2],
+    elbow=  [2.5,6.5,-0.2],
+    hand=   [3.5,6.5,-0.2],
+
+    hip=[0.4,4.2,0.0],
+    knee= [0.4,2.0,0.0],
+    foot= [0.4,0.3,0.0],
+
+    ball= [0.4,0.1,0.65],
+    toe= [0.4,0.1,1],
+    heel=[0.4,0,0],
+    bank_int=[0.2,0,0.5],
+    bank_ext=[0.7,0,0.5],
+
+    
+    clavicle=[0.5,6.5,0.2],
+
+
+    head01=   [0.0,7.2,-0.26],
+    head02=   [0.0,7.15,-0.20],
+    JawUp=    [0.0,7.15,0.5],
+    JawDwn=   [0.0,6.9,0.42],
+    Eye=      [0.15,7.38,0.4],
+    EyelidUp= [0.15,7.40,0.45],
+    EyelidDwn=[0.15,7.36,0.45]
+)

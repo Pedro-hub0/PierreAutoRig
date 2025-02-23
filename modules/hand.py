@@ -23,7 +23,9 @@ def locHand(sz):
         posHand= cmds.xform(lastJoint, query=True, translation=True, worldSpace=True)
 
     locHand=cmds.spaceLocator(n=f'Loc_Hand_{side}')
-    cmds.xform(locHand, translation=posHand, worldSpace=True)  
+    cmds.xform(locHand, translation=posHand, worldSpace=True) 
+
+ 
     y=0
     z=0
     for f in Fingers:
@@ -33,11 +35,12 @@ def locHand(sz):
             if i==1:      
                 cmds.parent(loc,locHand)
                 #The thumb is slightly smaller
-                y = -1 if f == "thumb" else 0
-
+                y = -(size/1.5) if f == "thumb" else 0
+                sizei= size*0.5
             else:
                 cmds.parent(loc,f'{f}_0{i-1}_{side}')   
-            moveNumber=(i*size,y,-z*size)
+                sizei=size
+            moveNumber=(i*sizei,y,-z*(size/2))
             smallUsefulFct.move_object(loc,moveNumber,False)
         z+=1
 

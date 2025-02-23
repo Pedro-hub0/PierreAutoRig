@@ -1,20 +1,30 @@
 import maya.cmds as cmds
 import smallUsefulFct
+import tools
 import math
 import os
 import importlib
 importlib.reload(smallUsefulFct)
+importlib.reload(tools)
 
 locator_names = ["Loc_Eyelid_Down_L","Loc_Eyelid_Up_L","Loc_Eye_L","Loc_Jaw_Up_End","Loc_Teeth_Up","Loc_Jaw_Up_01","Loc_Jaw_down_End","Loc_Teeth_Down","Loc_Jaw_Down_01","Loc_Head_Pivot_02","Loc_Head_Pivot_01","Eye_End_L"]
 joints_names = ["Bind_Eyelid_Dwn_End_L","Bind_Eyelid_Up_End_L","Bind_Eye_L","Bind_Jaw_Up_End","Bind_Teeth_Up","Bind_Jaw_Up_01","Bind_Jaw_Down_End","Bind_Teeth_Down","Bind_Jaw_Down_01","Bind_Head_Pivot_02","Bind_Head_Pivot_01","Bind_Eye_End_L"]
+trName=["head02","JawUp","JawDwn","Eye","EyelidUp","EyelidDwn"]
+trLoc=["Loc_Head_Pivot_02","Loc_Jaw_Up_End","Loc_Jaw_down_End","Loc_Eye_L","Loc_Eyelid_Up_L","Loc_Eyelid_Down_L"]
 
 
-
-def CreatelocHeadStructure(cb_org):
+def CreatelocHeadStructure(cb_org,cb_bbox):
     tr_Neck=(0,0,0)
+    selObj = cmds.ls(selection=True)
+
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
     if cb_org!=True:
         cb_org=cmds.checkBox(cb_org, query=True, value=True)
+    if cmds.objExists('Bind_Neck_end'):
         tr_Neck=cmds.xform('Bind_Neck_end', q=True, t=True, ws=True)
+    elif cb_bbox and len(selObj)>0:
+        tr_Neck=tools.getTranslatePosition("head01",selObj)
+
 
     for loc in locator_names:
         cmds.spaceLocator(name=loc)[0]
@@ -25,22 +35,35 @@ def CreatelocHeadStructure(cb_org):
         cmds.parent(locator_names[0],locator_names[2])
         cmds.parent(locator_names[1],locator_names[2])
         cmds.parent(locator_names[11],locator_names[2])
+
+
         #In Jaw Up Joint
         cmds.parent(locator_names[2],locator_names[5])
         cmds.parent(locator_names[3],locator_names[5])
         cmds.parent(locator_names[4],locator_names[5])
+
         #In Jaw Down Joint
         cmds.parent(locator_names[6],locator_names[8])
         cmds.parent(locator_names[7],locator_names[8])
+
         #In Jaw Head Pivot 02 Joint
         cmds.parent(locator_names[8],locator_names[9])
         #In Jaw Head Pivot 01 Joint
         cmds.parent(locator_names[5],locator_names[10])
         cmds.parent(locator_names[9],locator_names[10])
+
         if cmds.objExists('Grp_temp_Locs'):   
-            tr_Neck=cmds.xform(locator_names[10], t=tr_Neck, ws=True)
             cmds.parent(locator_names[10],'Grp_temp_Locs')
-    
+
+    cmds.xform(locator_names[10], t=tr_Neck, ws=True)
+    print(f'{locator_names[10]}       tr  {tr_Neck}')
+    if cb_bbox and len(selObj)>0:
+        #Place the locs
+        
+        for i in range(0,len(trName)):
+            tr=tools.getTranslatePosition(trName[i],selObj)
+            cmds.xform(trLoc[i],translation=tr, worldSpace=True)
+
 def HeadStructure():
     ##Initialisation##
     Eyes=[]
@@ -254,13 +277,6 @@ def CtrlHeadStructure(sz):
     cmds.pointConstraint(lastNeck(),'CTRL_Head_01_Move',maintainOffset=True, weight=1)
     cmds.orientConstraint(lastCTRLneck(),'CTRL_Head_01_Move',maintainOffset=True, weight=1)  
     #cmds.parent(ctrl_head_offset,'CTRL_Torso')
-    
-def LocNeck():
-    loc=cmds.spaceLocator(n=f'Loc_Neck_Base')[0]
-    loc2=cmds.spaceLocator(n=f'Loc_Neck_End')[0]
-    cmds.parent(loc2,loc)
-
-
 
 
         ##########
@@ -268,6 +284,22 @@ def LocNeck():
         ##########
 
 
+def LocNeck(cb_bbox):
+    sel=cmds.ls(selection=True)
+    checkBbox=cmds.checkBox(cb_bbox, query=True, value=True)
+
+    loc=cmds.spaceLocator(n=f'Loc_Neck_Base')[0]
+    if cmds.objExists("Loc_Spine_Shoulder"):
+        posLoc= cmds.xform("Loc_Spine_Shoulder", query=True, translation=True, worldSpace=True)
+        cmds.xform(loc, translation=posLoc, worldSpace=True)  
+    
+    loc2=cmds.spaceLocator(n=f'Loc_Neck_End')[0]
+
+    if checkBbox and len(sel)>0:
+        tr_neckEnd=tools.getTranslatePosition("head01",sel)
+        cmds.xform(loc2, translation=tr_neckEnd, worldSpace=True)  
+
+    cmds.parent(loc2,loc)
 
 def createNeckAlt(neckIk,sz) :
     nbIkJnt=cmds.intField(neckIk, query=True, value=True)+1

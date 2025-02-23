@@ -83,6 +83,9 @@ def FreezeOrient():
     cmds.setAttr(f'{obj}.jointOrientX',0) 
     cmds.setAttr(f'{direct_children}.jointOrientX',0) 
     cmds.setAttr(f'{direct_children}.jointOrientZ',0)
+
+
+
     return
 
 
@@ -150,14 +153,12 @@ def createIkFk(sz):
         #create BindHand
         BindHand=cmds.duplicate(IkChain[2], rc=True)[0]
         cmds.parent(BindHand, world=True)
-
         #Rename BindHand  
         cmds.rename(BindHand,f'Bind_Hand_{side}')     
         BindHand=f'Bind_Hand_{side}'
         smallUsefulFct.move(BindHand)
 
-    FkChain =cmds.duplicate(IkChain[0], rc=True)
-    
+    FkChain =cmds.duplicate(IkChain[0], rc=True) 
     i=0
     while i<len(FkChain):
         cmds.rename(FkChain[i], Fk_jnt_Names[i])
@@ -172,12 +173,18 @@ def createIkFk(sz):
     #tempRotZ=cmds.getAttr(f'{IkChain[0]}_Offset.rotateZ')
     #cmds.getAttr(f'{IkChain[0]}_Offset.rotateZ')
     #cmds.setAttr(f'{IkChain[0]}_Offset.rotateZ',0)
+
+    ##Fix some issue ##    
     ik_handle_Arm =cmds.ikHandle(startJoint=IkChain[0], endEffector=IkChain[2], solver='ikRPsolver', name=f'Ik_{objName}_{side}')[0]
+    if cmds.getAttr(f'{IkChain[1]}.preferredAngleY')==90:
+        cmds.setAttr(f'{IkChain[1]}.preferredAngleY',-90)
+
     #tempCstr=cmds.parentConstraint(f'{IkChain[0]}_Offset',ik_handle_Arm, maintainOffset=True, weight=1)
     #
     #cmds.setAtt   r(f'{IkChain[0]}_Offset.rotateZ',tempRotZ)
     #
     #cmds.delete(tempCstr)
+    
     cmds.parent(ik_handle_Arm,grp_Iks)
 
     #Pole vector
@@ -211,6 +218,7 @@ def createIkFk(sz):
     
 
     i=0
+    
     #Fk Controller -- Move and do the hierarchy --
     while i<len(FkCtrl):
         TranslateJnt = cmds.xform(FkChain[i], q=True, t=True, ws=True)
@@ -375,7 +383,6 @@ def mirror(sz):
     finalObj=f'{objName}_{otherSide}'
     #Create Ik/Fk
     cmds.select(finalObj)
-    print(f"FINALLL {finalObj}")
     createIkFk(sz)
 
 

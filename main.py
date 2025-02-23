@@ -259,7 +259,7 @@ def create_window():
 
     cmds.frameLayout(label='Neck', collapsable=True, collapse=True)
     cmds.separator(h=8)
-    cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(),width=100) 
+    cmds.button(label='Neck Locs',  w = 150,command=lambda x:head.LocNeck(cb_bbox),width=100) 
     #cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
     #cmds.text(label="Ik", font = "boldLabelFont" , w = 75, align = "center")
@@ -275,7 +275,7 @@ def create_window():
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cb_orga_locs_head= cmds.checkBox(label="Orga",v=False, w = 150)
-    cmds.button(label='Head Structure Locs',  w = 150,command=lambda x:head.CreatelocHeadStructure(cb_orga_locs_head),width=100)
+    cmds.button(label='Head Structure Locs',  w = 150,command=lambda x:head.CreatelocHeadStructure(cb_orga_locs_head,cb_bbox),width=100)
     cmds.setParent('..')
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cmds.button(label='Create Joints', command=lambda x:head.HeadStructure(),width=100)
@@ -427,8 +427,11 @@ def createLocsFulllAuto(sz,cbnbToe,CbToe,cb_bbox):
     hand.locHand(sz)
     cmds.select(["Leg_L",sl[0]])
     foot.createLocs(cbnbToe,CbToe,cb_bbox)
-    head.CreatelocHeadStructure(True)
-    head.LocNeck()
+    cmds.select(sl[0])
+    head.LocNeck(cb_bbox)
+    cmds.select(sl[0])
+    head.CreatelocHeadStructure(True,cb_bbox)
+
 
 def createSkeleton(sz,cbIkSpine,cbFkSpine,cbFkNeck,cbRib,cbnbToe,CbToe):
     cb_Rib=cmds.checkBox(cbRib, query=True, value=True)
