@@ -374,9 +374,10 @@ def create_window():
 
     cmds.separator(h=4)
 
-    cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
-    cnNumberJntOnCurve = cmds.intField(value=5,width=150)
-    cmds.button(label='Jnt On Curve', command=lambda x:tools.JntOnCurve_Poc(cnNumberJntOnCurve),width=150)
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,50,150])
+    cnNumberJntOnCurve = cmds.intField(value=5,width=100)
+    nbPath = cmds.intField(value=1,width=50)
+    cmds.button(label='Jnt On Curve', command=lambda x:tools.JntOnCurve_Poc(cnNumberJntOnCurve,nbPath),width=150)
     cmds.setParent('..')    
     cmds.separator(h=4)
     cmds.frameLayout(label='Constraints',w = 300, collapsable=True, collapse=True)

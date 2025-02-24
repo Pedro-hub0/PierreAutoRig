@@ -460,13 +460,15 @@ def Cstr(type,choix):
                         cmds.orientConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                 i=i+2
     
-def JntOnCurve_Poc(l):
+def JntOnCurve_Poc(l,nbPath):
 
 
     selection=cmds.ls(selection=True)
     CurveUp=selection[0]
 
     length=cmds.intField(l, query=True, value=True)   
+    nbPathv=cmds.intField(nbPath, query=True, value=True)   
+    
     pocUp=[]
     JntUp=[]
  
@@ -475,7 +477,12 @@ def JntOnCurve_Poc(l):
         size=y*length
         ##Organise
         grp_JntsZipUp = cmds.group(empty=True, name=f"grp_Bind_{CurveUp}")
+<<<<<<< Updated upstream
         for i in range(1,length+1):
+=======
+        for i in range(1,length+2):
+            print(f'{size+i-1} AND gfdsgd')
+>>>>>>> Stashed changes
             pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_{i}'))
             cmds.select(clear=True)
             JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_0{i}'))
@@ -484,7 +491,7 @@ def JntOnCurve_Poc(l):
             smallUsefulFct.move2(JntUp[size+i-1])
 
 
-            val3=(i-1)*(1/(length-1))
+            val3=((i*nbPathv)-1)*(1/(length-1))
             
             cmds.connectAttr(f'{CurveUp}.worldSpace[0]',f'{pocUp[size+i-1]}.inputCurve')
             cmds.setAttr(f"{pocUp[size+i-1]}.parameter",val3)
