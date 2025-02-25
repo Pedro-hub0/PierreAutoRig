@@ -296,6 +296,32 @@ def create_window():
     cmds.text(label="TOOLS", font = "boldLabelFont" , w = 300, align = "center")
     cmds.separator(h=8)
 
+
+    
+    cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
+    cmds.separator(h=2)
+    cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("bind",True),width=300)
+    cmds.separator(h=5)
+    
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
+    cnNameFind = cmds.textField(placeholderText="Find",text="Drv",w=100)
+    cmds.button(label='Select Jnt', command=lambda x:tools.selectJnt(cnNameFind,True),width=100)
+    cmds.button(label='Select All', command=lambda x:tools.selectJnt(cnNameFind,False),width=100)
+    cmds.setParent('..')  
+    cmds.frameLayout(label='Constraints',w = 300, collapsable=True, collapse=True)
+    cmds.rowLayout(numberOfColumns=5, columnWidth5=[50,50,50,50,50])
+    cb_cstr_Parentv2 = cmds.checkBox(label="Parent",v=False)
+    cb_cstr_Pointv2 = cmds.checkBox(label="Point",v=False)
+    cb_cstr_Orientv2= cmds.checkBox(label="Orient",v=False)
+    cb_cstr_Scalev2 = cmds.checkBox(label="Scale",v=False)
+    cb_cstr_Aimv2 = cmds.checkBox(label="Aim",v=False)
+    cmds.setParent('..')
+    cb_list_cstr=[cb_cstr_Parentv2,cb_cstr_Pointv2 ,cb_cstr_Orientv2,cb_cstr_Scalev2,cb_cstr_Aimv2]
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
+    cmds.button(label='Cstr 1 to all', command=lambda x:tools.Cstr(cb_list_cstr,0),width=100)
+    cmds.button(label='Cstr 1 to 1', command=lambda x:tools.Cstr(cb_list_cstr,1),width=100)    
+    cmds.setParent('..')
+    cmds.setParent('..')
     cmds.frameLayout(label='CTRL On Selection',w = 300, collapsable=True, collapse=True)
     cmds.rowLayout(numberOfColumns=3, columnWidth3=[75,75,75])
     cb_parent= cmds.checkBox(label="Parent",v=True)
@@ -312,8 +338,7 @@ def create_window():
     cb_cstr=[cb_parent,cb_cstr_Point,cb_cstr_Orient,cb_cstr_Move,cb_cstr_Offset,cb_cstr_Rotate]
     cmds.button(label='Controllers On Selection', command=lambda x:tools.CtrlParentCreate(cb_cstr,sizeCtrlArm),width=300)
     cmds.setParent('..')
-    
-    
+
     cmds.frameLayout(label='Lock Attribute',w = 300, collapsable=True, collapse=True)
     cmds.separator(h=8)
     cmds.rowLayout(numberOfColumns=4, columnWidth4=[75,75,75,75])
@@ -342,17 +367,9 @@ def create_window():
     cmds.button(label='Lock/Unlock Translate', command=lambda x:tools.lockUnlock(cbMove,cbaxes,cb_loc_hide),width=100)
 
     cmds.setParent('..')
-
-
-    cmds.button(label='Replace Ctrl', command=lambda x:tools.parentshape(),width=300)
-    cmds.separator(h=5)
-    cmds.button(label='Select Bind', command=lambda x:tools.selectJnt("bind",True),width=300)
-    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
-    cnNameFind = cmds.textField(placeholderText="Find",text="Drv",w=100)
-    cmds.button(label='Select Jnt', command=lambda x:tools.selectJnt(cnNameFind,True),width=100)
-    cmds.button(label='Select All', command=lambda x:tools.selectJnt(cnNameFind,False),width=100)
-
-    cmds.setParent('..')    
+    cmds.separator(h=4)
+    cmds.text(label="_________")
+    cmds.separator(h=4)
     cmds.frameLayout(label='JOINT PATH CONSTRAINTS', collapsable=True, collapse=True,w = 300)
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150,150])
     cnNamePath = cmds.textField(placeholderText="Name",text="Bind_Name",w=150)
@@ -371,41 +388,43 @@ def create_window():
     cbIsFolloPC = cmds.checkBox(label="Follow",v=False)
     cmds.button(label='Joint Path Constraints', command=lambda x:tools.PathJointContraint(cnNumberPath,cnNamePath,enum_dropdown,cbObjUp,cbIsFolloPC),width=150)
     cmds.setParent('..')
-
-    cmds.separator(h=4)
-
-    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,50,150])
+    cmds.frameLayout(label='Joint On Curve (Poc)',w = 300, collapsable=True, collapse=True)
+    cmds.rowLayout(numberOfColumns=4, columnWidth4=[100,30,50,130])
     cnNumberJntOnCurve = cmds.intField(value=5,width=100)
+    cmds.text(label="Part")
     nbPath = cmds.intField(value=1,width=50)
-    cmds.button(label='Jnt On Curve', command=lambda x:tools.JntOnCurve_Poc(cnNumberJntOnCurve,nbPath),width=150)
-    cmds.setParent('..')    
+    enum_dr_obj = cmds.optionMenu(label="object")
+    cmds.menuItem(label="Joints")   
+    cmds.menuItem(label="Locator")
+    cmds.setParent('..')  
+    cmds.button(label='Obj On Curve', command=lambda x:tools.JntOnCurve_Poc(cnNumberJntOnCurve,nbPath,enum_dr_obj),width=130, align = "center")
+    cmds.setParent('..')  
     cmds.separator(h=4)
-    cmds.frameLayout(label='Constraints',w = 300, collapsable=True, collapse=True)
-    cmds.rowLayout(numberOfColumns=4, columnWidth4=[50,50,50,50])
-    cb_cstr_Parentv2 = cmds.checkBox(label="Parent",v=False)
-    cb_cstr_Pointv2 = cmds.checkBox(label="Point",v=False)
-    cb_cstr_Orientv2= cmds.checkBox(label="Orient",v=False)
-    cb_cstr_Scalev2 = cmds.checkBox(label="Scale",v=False)
-    cmds.setParent('..')
-    cb_list_cstr=[cb_cstr_Parentv2,cb_cstr_Pointv2 ,cb_cstr_Orientv2,cb_cstr_Scalev2]
-    cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
-    cmds.button(label='Cstr 1 to all', command=lambda x:tools.Cstr(cb_list_cstr,0),width=100)
-    cmds.button(label='Cstr 1 to 1', command=lambda x:tools.Cstr(cb_list_cstr,1),width=100)    
-    cmds.setParent('..')
-    cmds.setParent('..')
+    cmds.text(label="_________")
+    cmds.separator(h=4)
+
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[150, 150])
     cmds.button(label=' LRA On ', command=lambda x:tools.toggleRotateVisibilityFct(True),width=150)
     cmds.button(label=' LRA Off ', command=lambda x:tools.toggleRotateVisibilityFct(False),width=150)
     cmds.setParent('..')
-    cmds.text(label=" Match Ik/Fk ", font = "boldLabelFont" , w = 300, align = "left")
-    cmds.separator(h=20)
-    # Create a text field
-    txt_mamespace = cmds.textField(placeholderText="Namespace")
-    cmds.rowLayout(numberOfColumns=3, columnWidth3=[150, 75,75])
-    cmds.button(label='Match Auto', command=lambda x:tools.matchIkFk(2,txt_mamespace),width=150)
-    cmds.button(label='Fk/Ik', command=lambda x:tools.matchIkFk(0,txt_mamespace),width=75)
-    cmds.button(label='Ik/Fk', command=lambda x:tools.matchIkFk(1,txt_mamespace),width=75)
+    #cmds.text(label=" Match Ik/Fk ", font = "boldLabelFont" , w = 300, align = "left")
+    #cmds.separator(h=20)
+    ## Create a text field
+    #txt_mamespace = cmds.textField(placeholderText="Namespace")
+    #cmds.rowLayout(numberOfColumns=3, columnWidth3=[150, 75,75])
+    #cmds.button(label='Match Auto', command=lambda x:tools.matchIkFk(2,txt_mamespace),width=150)
+    #cmds.button(label='Fk/Ik', command=lambda x:tools.matchIkFk(0,txt_mamespace),width=75)
+    #cmds.button(label='Ik/Fk', command=lambda x:tools.matchIkFk(1,txt_mamespace),width=75)
     # Show the window
+
+    cmds.separator(h=4)
+    cmds.text(label="_________")
+    cmds.separator(h=4)
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=[100,100,100])
+    txt_nom_Centre = cmds.textField(placeholderText="Obj Nom")
+    int_path = cmds.intField(value=1)
+    cmds.button(label='Create Eye Shit', command=lambda x:tools.aimOnCurveAdapt(txt_nom_Centre,int_path),width=150)
+    cmds.setParent('..')
     cmds.showWindow(window_name)
 
 

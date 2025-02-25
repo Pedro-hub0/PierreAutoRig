@@ -444,31 +444,44 @@ def Cstr(type,choix):
                     cmds.pointConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
                 if checkboxs[2]:
                     cmds.orientConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
-    
+                if checkboxs[4]:
+                    cmds.aimConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)   
     if choix==1:
         if len(selObj)%2 == 0:
             i=0
             while i < len(selObj):
                 if cmds.objExists(f'{selObj[i+1]}'):
-                    if checkboxs[3]:
-                        cmds.scaleConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                     if checkboxs[0]:
                         cmds.parentConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                     if checkboxs[1]:
                         cmds.pointConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                     if checkboxs[2]:
                         cmds.orientConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                    if checkboxs[3]:
+                        cmds.scaleConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                    if checkboxs[4]:
+                        cmds.aimConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                 i=i+2
     
-def JntOnCurve_Poc(l,nbPath):
+def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
 
-
+   
     selection=cmds.ls(selection=True)
     CurveUp=selection[0]
 
-    length=cmds.intField(l, query=True, value=True)   
-    nbPathv=cmds.intField(nbPath, query=True, value=True)   
-    
+    if not isinstance(l, int):
+        length=cmds.intField(l, query=True, value=True)
+    else:
+        length=l
+    if not isinstance(nbPath, int):
+        nbPathv=cmds.intField(nbPath, query=True, value=True)   
+    else:
+        nbPathv=nbPath  
+    if "|" in v_obj_On_Curve:
+        v_obj_On_Curve=cmds.optionMenu(v_obj_On_Curve, query=True, value=True)
+
+
+
     pocUp=[]
     JntUp=[]
  
@@ -476,23 +489,31 @@ def JntOnCurve_Poc(l,nbPath):
         CurveUp=selection[y]
         size=y*length
         ##Organise
-        grp_JntsZipUp = cmds.group(empty=True, name=f"grp_Bind_{CurveUp}")
-<<<<<<< Updated upstream
+        grp_JntsUp = cmds.group(empty=True, name=f"grp_{v_obj_On_Curve}_{CurveUp}")
+
+        ### Init of the first Object at 0
+        #if v_obj_On_Curve=="Joints":
+        #    JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_00'))
+        #if v_obj_On_Curve=="Locator":
+        #    JntUp.append(cmds.spaceLocator(name=f'Loc_{CurveUp}_00')[0])
+        #pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_00'))
+        #cmds.connectAttr(f'{CurveUp}.worldSpace[0]',f'{pocUp[size]}.inputCurve')
+        #cmds.setAttr(f"{pocUp[size]}.parameter",0)
+
+
         for i in range(1,length+1):
-=======
-        for i in range(1,length+2):
-            print(f'{size+i-1} AND gfdsgd')
->>>>>>> Stashed changes
-            pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_{i}'))
+            pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_0{i}'))
             cmds.select(clear=True)
-            JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_0{i}'))
+            if v_obj_On_Curve=="Joints":
+                JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_0{i}'))
+            if v_obj_On_Curve=="Locator":
+                JntUp.append(cmds.spaceLocator(name=f'Loc_{CurveUp}_0{i}')[0])
             
-            cmds.parent(JntUp[size+i-1],grp_JntsZipUp)
+            cmds.parent(JntUp[size+i-1],grp_JntsUp)
             smallUsefulFct.move2(JntUp[size+i-1])
 
+            val3=(i-1)*(1/(length-1))*(nbPathv)         
 
-            val3=((i*nbPathv)-1)*(1/(length-1))
-            
             cmds.connectAttr(f'{CurveUp}.worldSpace[0]',f'{pocUp[size+i-1]}.inputCurve')
             cmds.setAttr(f"{pocUp[size+i-1]}.parameter",val3)
 
@@ -500,6 +521,7 @@ def JntOnCurve_Poc(l,nbPath):
 
             cmds.connectAttr(f'{pocUp[size+i-1]}.position',f'{JntUp[size+i-1]}_Move.translate')
 
+    return JntUp
     
 
 
@@ -518,6 +540,79 @@ def renameRiv(n):
         cmds.rename(selObj[i],f'{n}_0{i+1}')
 
 
+def aimOnCurveAdapt(txt,cbPath):
+    ## Initialise and Check the variable
+    nbPathv=cmds.intField(cbPath, query=True, value=True)   
+    selObj = cmds.ls(selection=True)
+    txt=cmds.textField(txt,query=True, text=True)
+    LocCenter=[]
+
+    ##Orga
+    grp_LocCenter = cmds.group(empty=True, name=f"grp_Loc_Center_{selObj[0]}")
+    grp_LocEyelash = cmds.group(empty=True, name=f"grp_Loc_onJnt_{selObj[0]}")
+    grp_sysCrvAim = cmds.group(empty=True, name=f"grp_LSysCrvAim_{selObj[0]}")
+    cmds.parent([grp_LocCenter,grp_LocEyelash],grp_sysCrvAim)
+
+    #Is it a Curve
+    shapeNode = cmds.listRelatives(selObj[0], shapes=True)
+    if cmds.objectType(shapeNode[0]) not in ["nurbsCurve","bezierCurve"]:
+        raise ValueError("The first selection need to be a curve")
+    else:
+        curve=selObj[0]
+    if not cmds.objExists(txt):
+        raise ValueError(f"{txt} Not Exist")
+    else:
+        objCentre=txt
+
+    ##Create Loc on Curve
+    cmds.select(selObj[0])
+
+    locs=JntOnCurve_Poc(len(selObj)-1,nbPathv,'Locator')
+
+    print(f'DIST JNT LOC {smallUsefulFct.getDistBetweenJnts(locs[0],selObj[1])}    {smallUsefulFct.getDistBetweenJnts(locs[0],selObj[len(selObj)-1])}')
+    ##Loc on Jnt 
+    if smallUsefulFct.getDistBetweenJnts(locs[0],selObj[1])<smallUsefulFct.getDistBetweenJnts(locs[0],selObj[len(selObj)-1]):
+        for i in range(0,len(locs)):
+
+            cmds.matchTransform(locs[i],selObj[i+1], position=True)
+            tr=cmds.xform(txt,t=True,q=True,ws=True)
+            #Creation of loc in the center of the obj selected
+            LocCenter.append(cmds.spaceLocator(name=f'Loc_{selObj[i+1]}')[0])
+            cmds.xform(LocCenter[i], t=tr,ws=True)
+            #Creation of the constraints which link the center to the others element
+            cmds.orientConstraint(LocCenter[i],selObj[i+1])
+            cmds.aimConstraint(locs[i],LocCenter[i], aimVector=(1, 0, 0), upVector=(0, 1, 0), worldUpType="vector", worldUpVector=(0, 1, 0),maintainOffset=True)
+
+            cmds.parent(f'{locs[i]}_Offset',grp_LocEyelash)
+
+
+    else:
+        y=len(locs)
+        for i in range(0,len(locs)):
+            cmds.matchTransform( locs[y-1],selObj[i+1], position=True)
+            tr=cmds.xform(txt,t=True,q=True,ws=True)
+            #Creation of loc in the center of the obj selected
+            LocCenter.append(cmds.spaceLocator(name=f'Loc_{selObj[i+1]}')[0])
+            cmds.xform(LocCenter[i], t=tr,ws=True)
+            #Creation of the constraints which link the center to the others element
+            cmds.orientConstraint(LocCenter[i],selObj[i+1])
+            cmds.aimConstraint(locs[y-1],LocCenter[i], aimVector=(1, 0, 0), upVector=(0, 1, 0), worldUpType="vector", worldUpVector=(0, 1, 0),maintainOffset=True)
+
+            cmds.parent(f'{locs[i]}_Offset',grp_LocEyelash)
+            y=y-1
+
+    cmds.parent(LocCenter,grp_LocCenter)
+
+
+
+
+
+
+
+
+
+
+###### POSITIONS Automatique ######
 def bboxsize(sel):
     bbox = cmds.exactWorldBoundingBox(sel[0])
 
@@ -538,6 +633,9 @@ def getTranslatePosition(nom,sel):
     t=AdultePos.get_position(nom)
     result=multTab(t,h)
     return result
+
+
+
 
 class Positions:
     def __init__(self,ratio, root, shoulder, arm, elbow, hand, hip, knee, foot, ball, toe, heel, bank_int, bank_ext, clavicle,head01,head02,JawUp,JawDwn,Eye,EyelidUp,EyelidDwn):
