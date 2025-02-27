@@ -157,8 +157,10 @@ def parentshapeScript(child_transform,parent_transform):
 
 
 
-def selectJnt(name,isOk):
+def selectJnt(name,isOk,cb_notTheFirst):
     selObj = cmds.ls(selection=True)
+    notfirst=cmds.checkBox(cb_notTheFirst, query=True, value=True)
+    if notfirst:del selObj[0] 
     if name !="bind":
         name=cmds.textField(name, query=True, text=True)
     if len(selObj)<1:
@@ -174,6 +176,8 @@ def selectJnt(name,isOk):
         cmds.select(joints, r=True)
     else:
         for sel in selObj:
+            if cmds.objectType(sel)!= "joint":
+                cmds.select(sel, deselect=True)
             all_joints = cmds.listRelatives(sel, allDescendents=True, type="joint")
             bind_joints = [joint for joint in all_joints if name in joint.lower()]
             current_selection = cmds.ls(selection=True)
