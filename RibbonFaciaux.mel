@@ -53,9 +53,9 @@ proc Ribb_window()
                         -cw 1 45 -cw 2 45 -cw 3 90 -cw 4 45   // Set all column widths to 80
                         -cs 1 10 -cs 2 10 -cs 3 10 -cs 4 10 ; 
             text -label "Drv Jnts";
-            intField -minValue 2 -v 5 wp_jointOnCurves_window02_numOfJoint_first;
+            intField -minValue 0 -v 5 wp_jointOnCurves_window02_numOfJoint_first;
             text -label "Bind In Between";
-            intField -minValue 2 -v 2 wp_jointOnCurves_window02_numOfJoint_second;
+            intField -minValue 0 -v 2 wp_jointOnCurves_window02_numOfJoint_second;
             
         setParent ..;
 

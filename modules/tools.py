@@ -450,6 +450,10 @@ def Cstr(type,choix):
                     cmds.orientConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)
                 if checkboxs[4]:
                     cmds.aimConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)   
+                if checkboxs[5]:
+                    cmds.parentConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True,skipTranslate=["x", "y", "z"], weight=1)
+
+                    
     if choix==1:
         if len(selObj)%2 == 0:
             i=0
@@ -465,6 +469,8 @@ def Cstr(type,choix):
                         cmds.scaleConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                     if checkboxs[4]:
                         cmds.aimConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
+                    if checkboxs[5]:
+                        cmds.parentConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True,skipTranslate=["x", "y", "z"], weight=1)
                 i=i+2
     
 def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
@@ -544,13 +550,16 @@ def renameRiv(n):
         cmds.rename(selObj[i],f'{n}_0{i+1}')
 
 
-def aimOnCurveAdapt(txt,cbPath):
+def aimOnCurveAdapt(txt,cbPath,cbType,cbobjUp):
     ## Initialise and Check the variable
     nbPathv=cmds.intField(cbPath, query=True, value=True)   
     selObj = cmds.ls(selection=True)
     txt=cmds.textField(txt,query=True, text=True)
     LocCenter=[]
-
+    typeBrute=cmds.optionMenu(cbType, query=True, value=True)
+    vartype=findType(typeBrute)
+    objUp= cmds.textField(cbobjUp, query=True, text=True)
+    print(f' OBJ Up {objUp}    TYPE {vartype}')
     ##Orga
     grp_LocCenter = cmds.group(empty=True, name=f"grp_Loc_Center_{selObj[0]}")
     grp_LocEyelash = cmds.group(empty=True, name=f"grp_Loc_onJnt_{selObj[0]}")
@@ -585,7 +594,26 @@ def aimOnCurveAdapt(txt,cbPath):
             cmds.xform(LocCenter[i], t=tr,ws=True)
             #Creation of the constraints which link the center to the others element
             cmds.orientConstraint(LocCenter[i],selObj[i+1])
-            cmds.aimConstraint(locs[i],LocCenter[i], aimVector=(1, 0, 0), upVector=(0, 1, 0), worldUpType="vector", worldUpVector=(0, 1, 0),maintainOffset=True)
+            if objUp == "":
+                print("KesKe Je Fou la")
+                cmds.aimConstraint(
+                    locs[i],LocCenter[i],
+                    aimVector=(1, 0, 0), 
+                    upVector=(0, 1, 0), 
+                    worldUpType=vartype, 
+                    worldUpVector=(0, 1, 0),
+                    maintainOffset=True)
+            else:
+                print("Ah BAh Chui Au bon endroit")
+                cmds.aimConstraint(
+                    locs[i],LocCenter[i],
+                    aimVector=(1, 0, 0), 
+                    upVector=(0, 1, 0), 
+                    worldUpType=vartype, 
+                    worldUpVector=(0, 1, 0),
+                    maintainOffset=True,
+                    worldUpObject=objUp)
+                    
 
             cmds.parent(f'{locs[i]}_Offset',grp_LocEyelash)
 
@@ -600,8 +628,25 @@ def aimOnCurveAdapt(txt,cbPath):
             cmds.xform(LocCenter[i], t=tr,ws=True)
             #Creation of the constraints which link the center to the others element
             cmds.orientConstraint(LocCenter[i],selObj[i+1])
-            cmds.aimConstraint(locs[y-1],LocCenter[i], aimVector=(1, 0, 0), upVector=(0, 1, 0), worldUpType="vector", worldUpVector=(0, 1, 0),maintainOffset=True)
-
+            if objUp == "":
+                print("KesKe Je Fou la")
+                cmds.aimConstraint(
+                    locs[i],LocCenter[i],
+                    aimVector=(1, 0, 0), 
+                    upVector=(0, 1, 0), 
+                    worldUpType=vartype, 
+                    worldUpVector=(0, 1, 0),
+                    maintainOffset=True)
+            else:
+                print("Ah BAh Chui Au bon endroit")
+                cmds.aimConstraint(
+                    locs[i],LocCenter[i],
+                    aimVector=(1, 0, 0), 
+                    upVector=(0, 1, 0), 
+                    worldUpType=vartype, 
+                    worldUpVector=(0, 1, 0),
+                    maintainOffset=True,
+                    worldUpObject=objUp)
             cmds.parent(f'{locs[i]}_Offset',grp_LocEyelash)
             y=y-1
 
