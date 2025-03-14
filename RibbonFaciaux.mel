@@ -92,10 +92,11 @@ proc Ribb_window()
                 // text infield "Curve Creation"
         text -label "" -h 6;	
 
-        rowColumnLayout -numberOfColumns 3 -cw 1 80 -cw 2 100 -cw 3 80 -cs 1 20 -cs 2 5 -cs 3 5;
+        rowColumnLayout -numberOfColumns 4 -cw 1 80 -cw 2 100 -cw 3 80 -cw 4 80 -cs 1 20 -cs 2 5 -cs 3 5 -cs 4 5;
             checkBox -label "Translate" -value 1 chtConnexion;
             checkBox -label "Rotate" -value 0 chrConnexion;
             checkBox -label "Move" -value 0 chMoveConnexion;
+            checkBox -label "Scale" -value 0 chsConnexion;
         setParent ..;
         rowColumnLayout -numberOfColumns 3 -cw 1 100 -cw 2 100 -cw 3 50 -cs 1 5 -cs 2 5 -cs 3 5;
             checkBox -label "Multiply" -value 0 chMultiply;
@@ -476,6 +477,7 @@ proc connectAll()
 {
     int $cht = `checkBox -query -value chtConnexion`;
     int $chr = `checkBox -query -value chrConnexion`;
+    int $chs = `checkBox -query -value chsConnexion`;
     int $chMove = `checkBox -query -value chMoveConnexion`;
     string $move="";
     string $selected[] = `ls -sl`;
@@ -498,12 +500,20 @@ proc connectAll()
             connectAttr($selected[0]+".rotate") ($selected[$i]+$move+".rotate");
         }
     }
+    if($chs)
+    {   
+        for($i=1;$i<size($selected);$i+=1)
+        { 
+            connectAttr($selected[0]+".scale") ($selected[$i]+$move+".scale");
+        }
+    }
 }
 
 proc ctrDrvJnt()
 {
     int $cht = `checkBox -query -value chtConnexion`;
     int $chr = `checkBox -query -value chrConnexion`;
+    int $chs = `checkBox -query -value chsConnexion`;
     int $chMove = `checkBox -query -value chMoveConnexion`;
 
     int $chMultiply = `checkBox -query -value chMultiply`;
@@ -560,6 +570,25 @@ proc ctrDrvJnt()
                 }
                 else {
                 connectAttr($selected[$i]+".rotate") ($selected[$i+1]+$move+".rotate");}
+            }
+        }
+        if($chs)
+        {   
+            for($i=0;$i<size($selected);$i+=2)
+            { 
+                if($chMultiply)
+                {
+                    // Sanitize the name by replacing '|' with '_'
+                    string $sanitizedName = `substituteAllString $selected[$i] "|" "_"`;
+                    string $nameMult = "multDiv_Scale_" + $sanitizedName;
+                    string $multDivNode = `createNode multiplyDivide -name $nameMult`;
+
+                    connectAttr($selected[$i]+".scale") ($multDivNode+".input1");
+                    connectAttr($multDivNode+".output") ($selected[$i+1]+$move+".scale");
+
+                }
+                else {
+                connectAttr($selected[$i]+".scale") ($selected[$i+1]+$move+".scale");}
             }
         }
 
