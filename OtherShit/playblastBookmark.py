@@ -1,4 +1,9 @@
+### Script by PierreLip - 2025 ##
+
+
+
 import maya.cmds as cmds
+
 def open_file_dialog(*args):
     # Open a file dialog to select a file
     folder_path = cmds.fileDialog2(fileMode=3, caption="Select File")
@@ -37,6 +42,7 @@ def create_ui():
     # Create a text field to display the selected folder path
     path=cmds.textField("folderPathTextField", editable=False, width=380)    # Create a button
     cmds.button(label='Create Playblast', command=lambda x:bookmarkPlayblast(path),width=150)
+    cmds.button(label='Create Playblast 02', command=lambda x:bookmarkPlayblastAllBookmarkOneCam(path),width=150)
     # Show the window
     cmds.showWindow(window)
 
@@ -115,6 +121,26 @@ def bookmarkPlayblast(path="Documents"):
 
         else:
             print("No bookmarks found.")
+
+def bookmarkPlayblastAllBookmarkOneCam(path="Documents"):
+    if path != "Documents":
+        path=cmds.textField(path,query=True, text=True)
+    # Get all bookmarks
+    bookmarks = cmds.ls('*timeSliderBookmark*') or []
+    selection=cmds.ls(selection=True)
+    if len(selection)>0:
+        for sel in selection:
+            name = sel.split('_')[-1]
+            for bookmark in bookmarks:
+                attName=cmds.getAttr(f'{bookmark}.name')
+
+                # Get the start time of the bookmark
+                start_time = int(cmds.getAttr(f'{bookmark}.timeRangeStart'))
+                # Get the end time of the bookmark (if it has a range)
+                end_time = int(cmds.getAttr(f'{bookmark}.timeRangeStop'))
+                cam=sel
+                if is_camera(cam):
+                    do_playblast(cam,start_time,end_time,path,attName)
 
 
 # Call the function to create the UI
