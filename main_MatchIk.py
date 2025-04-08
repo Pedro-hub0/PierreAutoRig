@@ -4,6 +4,7 @@ import sys
 import os
 import importlib
 
+
 # Get the folder containing the current script
 script_dir = os.path.dirname(__file__)
 
@@ -11,9 +12,11 @@ script_dir = os.path.dirname(__file__)
 sys.path.append(script_dir)
 
 import modules.tools
-
+import modules.smallUsefulFct
 
 importlib.reload(modules.tools)
+
+importlib.reload(modules.smallUsefulFct)
 
 
 
