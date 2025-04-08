@@ -76,8 +76,7 @@ def AttachRib(attach):
 
   
         if cmds.objExists(ARib) and cmds.objExists(BRib):
-            print(smallUsefulFct.getDistBetweenJnts(selObj[0],f'Bind_Ribbon_A01_{obj}_{side}'))
-            print(smallUsefulFct.getDistBetweenJnts(selObj[1],f'Bind_Ribbon_A01_{obj}_{side}'))
+
             
             if not smallUsefulFct.getDistBetweenJnts(selObj[0],f'Bind_Ribbon_A01_{obj}_{side}')<smallUsefulFct.getDistBetweenJnts(selObj[1],f'Bind_Ribbon_A01_{obj}_{side}'):
                 
@@ -173,7 +172,11 @@ def AttachRib(attach):
                         #else:
                         #    cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{ARib}.rotateX')
                     else:
-                        cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{BRib}.rotateX')
+                        multDivideNonRollSh = cmds.createNode('multiplyDivide', name=f'mymultDivide_Nonroll_{obj}_{side}')
+                        cmds.setAttr(f'{multDivideNonRollSh}.input2X',-1)
+                        cmds.connectAttr(f'{quat_to_euler_node}.outputRotateX',f'{multDivideNonRollSh}.input1X')
+                        cmds.connectAttr(f'{multDivideNonRollSh}.outputX',f'{BRib}.rotateX')
+
 
     
 
