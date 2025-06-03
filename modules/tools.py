@@ -1,8 +1,19 @@
 import maya.cmds as cmds
-import smallUsefulFct
 import math
+import os
+import sys
 import importlib
+
+
+# Get the folder containing the current script
+script_dir = os.path.dirname(__file__)
+
+# Add that folder to sys.path
+sys.path.append(script_dir)
+
 import head
+import smallUsefulFct
+
 importlib.reload(smallUsefulFct)
 importlib.reload(head)
 
@@ -15,14 +26,24 @@ def matchIkFk(value,txt_n):
 
     # Get the text entered in the field
     txt_namespace = cmds.textField(txt_n, query=True, text=True)
+    selObj = cmds.ls(selection=True)
+    obj=selObj[0]
+
     if txt_namespace:
         txt_namespace=f"{txt_namespace}:"
     else:
-        txt_namespace=""
+        if ":" in obj:
+            parts = obj.split(":") 
+            txt_namespace = f'{parts[0]}:'
+        else:
+            txt_namespace=""
     #INITIALISATIONS VARIABLES
         #Object
-    selObj = cmds.ls(selection=True)
-    obj=selObj[0]
+
+    ##Find namespace     ##
+    ##if ":" in obj:
+    # parts = obj.split(":") ##
+    # namespace = f'{parts}:'
         #Names
     parts = obj.split("_")
     lenName=len(parts)
