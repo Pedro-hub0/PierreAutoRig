@@ -368,9 +368,8 @@ def CtrlParentCreate(cbcstr,sz):
         tr_Sel=cmds.xform(sel,translation=True, query=True, worldSpace=True)
         ro_Sel=cmds.xform(sel,rotation=True, query=True, worldSpace=True)
         if checkboxs[5]:
-            cmds.xform(Ctrl, t=tr_Sel, ro=ro_Sel, ws=True)
-        else:
-            cmds.xform(Ctrl,translation=tr_Sel, worldSpace=True)             
+            cmds.matchTransform(Ctrl,sel)  
+        cmds.matchTransform(Ctrl,sel,rotation=False)         
         if checkboxs[0]:
             cmds.parentConstraint(Ctrl,sel, maintainOffset=True, weight=1)
         if checkboxs[1]:
@@ -473,7 +472,8 @@ def Cstr(type,choix):
                     cmds.aimConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True, weight=1)   
                 if checkboxs[5]:
                     cmds.parentConstraint(selObj[0],f'{selObj[i]}', maintainOffset=True,skipTranslate=["x", "y", "z"], weight=1)
-
+                if checkboxs[6]:
+                    cmds.parent(selObj[i],f'{selObj[i+1]}')
                     
     if choix==1:
         if len(selObj)%2 == 0:
@@ -492,6 +492,8 @@ def Cstr(type,choix):
                         cmds.aimConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True, weight=1)
                     if checkboxs[5]:
                         cmds.parentConstraint(selObj[i],f'{selObj[i+1]}', maintainOffset=True,skipTranslate=["x", "y", "z"], weight=1)
+                    if checkboxs[6]:
+                        cmds.parent(selObj[i],f'{selObj[i+1]}')
                 i=i+2
     
 def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):

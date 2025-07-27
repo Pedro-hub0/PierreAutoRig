@@ -320,7 +320,8 @@ def create_window():
     cb_cstr_Aimv2 = cmds.checkBox(label="Aim",v=False)
     cb_cstr_ParentRv2= cmds.checkBox(label="Parent No Rotate",v=False)
     cmds.setParent('..')
-    cb_list_cstr=[cb_cstr_Parentv2,cb_cstr_Pointv2 ,cb_cstr_Orientv2,cb_cstr_Scalev2,cb_cstr_Aimv2,cb_cstr_ParentRv2]
+    cb_Parent3= cmds.checkBox(label="Parent",v=False)
+    cb_list_cstr=[cb_cstr_Parentv2,cb_cstr_Pointv2 ,cb_cstr_Orientv2,cb_cstr_Scalev2,cb_cstr_Aimv2,cb_cstr_ParentRv2,cb_Parent3]
     cmds.rowLayout(numberOfColumns=2, columnWidth2=[100,100])
     cmds.button(label='Cstr 1 to all', command=lambda x:tools.Cstr(cb_list_cstr,0),width=100)
     cmds.button(label='Cstr 1 to 1', command=lambda x:tools.Cstr(cb_list_cstr,1),width=100)    
