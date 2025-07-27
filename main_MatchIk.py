@@ -4,6 +4,7 @@ import sys
 import os
 import importlib
 
+
 # Get the folder containing the current script
 script_dir = os.path.dirname(__file__)
 
@@ -11,9 +12,10 @@ script_dir = os.path.dirname(__file__)
 sys.path.append(script_dir)
 
 import modules.tools
-
+import modules.smallUsefulFct
 
 importlib.reload(modules.tools)
+importlib.reload(modules.smallUsefulFct)
 
 
 
@@ -24,11 +26,11 @@ def create_window():
     Create a window with a button.
     """
     # Check if the window already exists, and delete it if it does
-    if cmds.window("myWindow", exists=True):
-        cmds.deleteUI("myWindow", window=True)
+    if cmds.window("w_matchik", exists=True):
+        cmds.deleteUI("w_matchik", window=True)
 
     # Create the window
-    window_name = cmds.window("myWindow", title="MatchIkFk_PierreAuto", widthHeight=(310, 100), sizeable=False)
+    window_name = cmds.window("w_matchik", title="MatchIkFk_PierreAuto", widthHeight=(310, 100), sizeable=False)
     # Create a layout for the window
     column_layout= cmds.columnLayout(adjustableColumn=True)
 

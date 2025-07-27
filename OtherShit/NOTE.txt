@@ -1,0 +1,6 @@
+NOTE 
+
+--> Poc --> Ne marche pas pour 1 seul joint
+|--> Le mettre en pourcentage 
+
+--> Ribbon a un probleme, si il est connecter ave le A ou B, ça change 
