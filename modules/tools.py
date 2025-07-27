@@ -496,7 +496,7 @@ def Cstr(type,choix):
                         cmds.parent(selObj[i],f'{selObj[i+1]}')
                 i=i+2
     
-def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
+def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve,prefix="Bind",poc=True,sel=""):
 
    
     selection=cmds.ls(selection=True)
@@ -515,6 +515,7 @@ def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
 
 
 
+
     pocUp=[]
     JntUp=[]
  
@@ -522,7 +523,7 @@ def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
         CurveUp=selection[y]
         size=y*length
         ##Organise
-        grp_JntsUp = cmds.group(empty=True, name=f"grp_{v_obj_On_Curve}_{CurveUp}")
+        grp_JntsUp = cmds.group(empty=True, name=f"grp_{prefix}_{v_obj_On_Curve}_{CurveUp}")
 
         ### Init of the first Object at 0
         #if v_obj_On_Curve=="Joints":
@@ -535,10 +536,10 @@ def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
 
 
         for i in range(1,length+1):
-            pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_PocUp_0{i}'))
+            pocUp.append(cmds.createNode('pointOnCurveInfo', name=f'{CurveUp}_{prefix}PocUp_0{i}'))
             cmds.select(clear=True)
             if v_obj_On_Curve=="Joints":
-                JntUp.append(cmds.joint(n=f'Bind_{CurveUp}_0{i}'))
+                JntUp.append(cmds.joint(n=f'{prefix}_{CurveUp}_0{i}'))
             if v_obj_On_Curve=="Locator":
                 JntUp.append(cmds.spaceLocator(name=f'Loc_{CurveUp}_0{i}')[0])
             
@@ -553,6 +554,11 @@ def JntOnCurve_Poc(l,nbPath,v_obj_On_Curve):
             #Connect to joints
 
             cmds.connectAttr(f'{pocUp[size+i-1]}.position',f'{JntUp[size+i-1]}_Move.translate')
+
+            if not poc:
+                Temp_pos=cmds.xform(f'{JntUp[size+i-1]}', query=True, worldSpace=True, translation=True)
+                cmds.delete(pocUp[size+i-1])
+                cmds.xform(f'{JntUp[size+i-1]}_Move',worldSpace=True,translation=Temp_pos)
 
     return JntUp
     
@@ -573,62 +579,106 @@ def renameRiv(n):
         cmds.rename(selObj[i],f'{n}_0{i+1}')
 
 
-def aimOnCurveAdapt(txt,cbPath,cbType,cbobjUp):
+def aimOnCurveAdapt(txt,nbDrv,cbPath=1):
+#,cbType,cbobjUp,nbDrv):
     ## Initialise and Check the variable
-    nbPathv=cmds.intField(cbPath, query=True, value=True)   
+    #nbPathv=cmds.intField(cbPath, query=True, value=True)
+    nbDrvJnt=cmds.intField(nbDrv, query=True, value=True)      
     selObj = cmds.ls(selection=True)
+    if len(selObj)<1:
+        raise ValueError(f"Select Some Edges or a Curve")
+    if selObj and ".e[" in selObj[0]:
+        selName=selObj[0].split(".")[0]
+    else:
+        selName=selObj[0]
     txt=cmds.textField(txt,query=True, text=True)
     LocCenter=[]
-    typeBrute=cmds.optionMenu(cbType, query=True, value=True)
-    vartype=findType(typeBrute)
-    objUp= cmds.textField(cbobjUp, query=True, text=True)
-    print(f' OBJ Up {objUp}    TYPE {vartype}')
-    ##Orga
-    grp_LocCenter = cmds.group(empty=True, name=f"grp_Loc_Center_{selObj[0]}")
-    grp_LocEyelash = cmds.group(empty=True, name=f"grp_Loc_onJnt_{selObj[0]}")
-    grp_sysCrvAim = cmds.group(empty=True, name=f"grp_LSysCrvAim_{selObj[0]}")
-    cmds.parent([grp_LocCenter,grp_LocEyelash],grp_sysCrvAim)
+    #typeBrute=cmds.optionMenu(cbType, query=True, value=True)
+    vartype=findType("Object Up")
+    if not cmds.objExists(txt):
+        raise ValueError(f"{txt} Not Exist")
+    #objUp= cmds.textField(cbobjUp, query=True, text=True)
+    tr=cmds.xform(txt,t=True,q=True,ws=True) 
+
+    #Init
+
+
 
     #Is it a Curve
     shapeNode = cmds.listRelatives(selObj[0], shapes=True)
-    if cmds.objectType(shapeNode[0]) not in ["nurbsCurve","bezierCurve"]:
+    if smallUsefulFct.isSomething(selObj[0],"Edge"):
+        cmds.select(selObj, replace=True)
+        crvName=  smallUsefulFct.nameIncrement(f"crv_{selName}")
+        curve=cmds.polyToCurve(form=2, degree=3,n=crvName)[0]
+    elif cmds.objectType(shapeNode[0]) not in ["nurbsCurve","bezierCurve"]:
         raise ValueError("The first selection need to be a curve")
     else:
         curve=selObj[0]
-    if not cmds.objExists(txt):
-        raise ValueError(f"{txt} Not Exist")
+
+  
+    ##Orga
+    grp_sysCrvAim = cmds.group(empty=True, name=  smallUsefulFct.nameIncrement(f"grp_CrvAim_{selName}"))
+    grp_LocCenter = cmds.group(empty=True, name=  smallUsefulFct.nameIncrement(f"grp_Loc_Center_{selName}"))
+    grp_LocEyelash = cmds.group(empty=True, name=  smallUsefulFct.nameIncrement(f"grp_Loc_onJnt_{selName}"))
+    grp_Ctrl = cmds.group(empty=True, name=  smallUsefulFct.nameIncrement(f"grp_Ctrls_{selName}"))
+    grp_LocCenter_Drv = cmds.group(empty=True, name=  smallUsefulFct.nameIncrement(f"grp_Center_Drv_{selName}"))
+    cmds.parent([grp_LocCenter,grp_LocEyelash,grp_Ctrl,grp_LocCenter_Drv],grp_sysCrvAim)
+    ctrlDrv=[]
+    ctrlDrv2=[]
+    cmds.parent(curve,grp_sysCrvAim)
+
+
+    ##Clean Curve
+    cmds.delete(curve, constructionHistory=True)
+    cmds.rebuildCurve(curve,ch= 1, rpo= 1, rt =0 ,end =1 ,kr =0 ,kcp =0 ,kep =0 ,kt =0 ,s =5 ,d =5 ,tol= 0)
+# rebuildCurve -ch 1 -rpo 1 -rt 0 -end 1 -kr 0 -kcp 0 -kep 0 -kt 0 -s 5 -d 5 -tol 0 "polyToCurve1";
+    #Create Obj Up for Aim
+    if not cmds.objExists(f'Loc_Eye_{txt}_Up'):
+        objUp= cmds.spaceLocator(name=f'Loc_Eye_{txt}_Up')[0]
+        cmds.xform(objUp,t=tr,ws=True)
+        cmds.setAttr(f'{objUp}.translateY',cmds.getAttr(f'{objUp}.translateY')+2)
     else:
-        objCentre=txt
-
+        objUp=f'Loc_Eye_{txt}_Up'
     ##Create Loc on Curve
-    cmds.select(selObj[0])
+    cmds.select(curve)
+    nbrBind=nbDrvJnt*2
+    locs=JntOnCurve_Poc(nbrBind,cbPath,'Locator',"Loc")
+    #Create Jnts Bind and Drvt on curve
+    cmds.select(curve)
+    BindJnt=JntOnCurve_Poc(nbrBind,1,"Joints","Bind")
+    cmds.select(curve)
+    DrvJnt=JntOnCurve_Poc(nbDrvJnt,1,"Joints","DrvJnt",False)  
+    #Orga
+    parentNameDrv = cmds.listRelatives(DrvJnt[0], parent=True, fullPath=True)
+    parentNameBind = cmds.listRelatives(BindJnt[0], parent=True, fullPath=True)
+    parentNameLoc = cmds.listRelatives(locs[0], parent=True, fullPath=True)
+    nameparentBind= parentNameBind[0].split('|')[1]
+    nameparentDrv=  parentNameDrv[0].split('|')[1]
+    nameparentLoc=  parentNameLoc[0].split('|')[1]
+    print(f"PARENTS {nameparentBind}   {nameparentDrv} ")
+    cmds.parent([nameparentBind,nameparentDrv],grp_sysCrvAim)
 
-    locs=JntOnCurve_Poc(len(selObj)-1,nbPathv,'Locator')
-
-    print(f'DIST JNT LOC {smallUsefulFct.getDistBetweenJnts(locs[0],selObj[1])}    {smallUsefulFct.getDistBetweenJnts(locs[0],selObj[len(selObj)-1])}')
     ##Loc on Jnt 
-    if smallUsefulFct.getDistBetweenJnts(locs[0],selObj[1])<smallUsefulFct.getDistBetweenJnts(locs[0],selObj[len(selObj)-1]):
+    if smallUsefulFct.getDistBetweenJnts(locs[0],BindJnt[0])<smallUsefulFct.getDistBetweenJnts(locs[0],BindJnt[len(BindJnt)-1]):
         for i in range(0,len(locs)):
 
-            cmds.matchTransform(locs[i],selObj[i+1], position=True)
-            tr=cmds.xform(txt,t=True,q=True,ws=True)
+            cmds.matchTransform(locs[i],BindJnt[i], position=True)
+
             #Creation of loc in the center of the obj selected
-            LocCenter.append(cmds.spaceLocator(name=f'Loc_{selObj[i+1]}')[0])
+            LocCenter.append(cmds.spaceLocator(name=f'Loc_{BindJnt[i]}')[0])
             cmds.xform(LocCenter[i], t=tr,ws=True)
             #Creation of the constraints which link the center to the others element
-            cmds.orientConstraint(LocCenter[i],selObj[i+1])
-            if objUp == "":
-                print("KesKe Je Fou la")
-                cmds.aimConstraint(
-                    locs[i],LocCenter[i],
-                    aimVector=(1, 0, 0), 
-                    upVector=(0, 1, 0), 
-                    worldUpType=vartype, 
-                    worldUpVector=(0, 1, 0),
-                    maintainOffset=True)
-            else:
-                print("Ah BAh Chui Au bon endroit")
-                cmds.aimConstraint(
+            cmds.orientConstraint(LocCenter[i],BindJnt[i])
+#           if objUp == "":
+#               cmds.aimConstraint(
+#                   locs[i],LocCenter[i],
+#                   aimVector=(1, 0, 0), 
+#                   upVector=(0, 1, 0), 
+#                   worldUpType=vartype, 
+#                   worldUpVector=(0, 1, 0),
+#                   maintainOffset=True)
+#           else:
+            cmds.aimConstraint(
                     locs[i],LocCenter[i],
                     aimVector=(1, 0, 0), 
                     upVector=(0, 1, 0), 
@@ -637,51 +687,154 @@ def aimOnCurveAdapt(txt,cbPath,cbType,cbobjUp):
                     maintainOffset=True,
                     worldUpObject=objUp)
                     
-
             cmds.parent(f'{locs[i]}_Offset',grp_LocEyelash)
 
 
     else:
         y=len(locs)
         for i in range(0,len(locs)):
-            cmds.matchTransform( locs[y-1],selObj[i+1], position=True)
-            tr=cmds.xform(txt,t=True,q=True,ws=True)
+            cmds.matchTransform( locs[y-1],BindJnt[i], position=True)
             #Creation of loc in the center of the obj selected
-            LocCenter.append(cmds.spaceLocator(name=f'Loc_{selObj[i+1]}')[0])
+            LocCenter.append(cmds.spaceLocator(name=f'Loc_{BindJnt[i]}')[0])
             cmds.xform(LocCenter[i], t=tr,ws=True)
             #Creation of the constraints which link the center to the others element
-            cmds.orientConstraint(LocCenter[i],selObj[i+1])
-            if objUp == "":
-                print("KesKe Je Fou la")
-                cmds.aimConstraint(
-                    locs[i],LocCenter[i],
-                    aimVector=(1, 0, 0), 
-                    upVector=(0, 1, 0), 
-                    worldUpType=vartype, 
-                    worldUpVector=(0, 1, 0),
-                    maintainOffset=True)
-            else:
-                print("Ah BAh Chui Au bon endroit")
-                cmds.aimConstraint(
-                    locs[i],LocCenter[i],
-                    aimVector=(1, 0, 0), 
-                    upVector=(0, 1, 0), 
-                    worldUpType=vartype, 
-                    worldUpVector=(0, 1, 0),
-                    maintainOffset=True,
-                    worldUpObject=objUp)
+            cmds.orientConstraint(LocCenter[i],BindJnt[i])
+           #if objUp == "":
+           #    print("KesKe Je Fou la")
+           #    cmds.aimConstraint(
+           #        locs[i],LocCenter[i],
+           #        aimVector=(1, 0, 0), 
+           #        upVector=(0, 1, 0), 
+           #        worldUpType=vartype, 
+           #        worldUpVector=(0, 1, 0),
+           #        maintainOffset=True)
+        #else:
+
+            cmds.aimConstraint(
+                locs[i],LocCenter[i],
+                aimVector=(1, 0, 0), 
+                upVector=(0, 1, 0), 
+                worldUpType=vartype, 
+                worldUpVector=(0, 1, 0),
+                maintainOffset=True,
+                worldUpObject=objUp)
             cmds.parent(f'{locs[i]}_Offset',grp_LocEyelash)
             y=y-1
 
+    ##Drv Jnts CTRL + Aim
+    for drv in DrvJnt:
+        ##Créer des Driven Jnt Qui Constraitn en Aim
+        #Creation of loc in the center of the obj selected
+        TempLocCenter=cmds.spaceLocator(name=f'Loc_{drv}')[0]
+        cmds.xform(TempLocCenter, t=tr,ws=True)
+
+        #Ctrl Creation
+        dist=smallUsefulFct.getDistBetweenJnts(DrvJnt[0],DrvJnt[1])
+        tempctrl=CtrlOnObj(drv,dist/2.0,'Aim_')
+        smallUsefulFct.set_curve_color(tempctrl,5)
+        tempctrl2=CtrlOnObj(drv,dist/4.0)
+        smallUsefulFct.set_curve_color(tempctrl2,6)
+        ctrlDrv.append(tempctrl)
+        ctrlDrv2.append(tempctrl2)
+
+        ## Organise   
+        cmds.parent(f'{tempctrl}_Offset',grp_Ctrl)   
+        cmds.parent(f'{tempctrl2}_Offset',f'{tempctrl}')           
+        cmds.parent(f'{drv}_Offset',TempLocCenter)
+        cmds.parent(TempLocCenter,grp_LocCenter_Drv)  
+        cmds.setAttr(f'{tempctrl}_Offset.translateZ',cmds.getAttr(f'{tempctrl}_Offset.translateZ')+dist*2)
+
+        #Ctrl Constraints
+        cmds.aimConstraint(
+            tempctrl,TempLocCenter,
+            aimVector=(1, 0, 0), 
+            upVector=(0, 1, 0), 
+            worldUpType=vartype, 
+            worldUpVector=(0, 1, 0),
+            maintainOffset=True,
+            worldUpObject=objUp)
+        smallUsefulFct.connect_translate_rotate_pma([tempctrl2],drv)
+
+    CtrlPrincipal(DrvJnt,dist)
+    ##Bind DrvJnts Curve
+    SkinClusterDrv = cmds.skinCluster(DrvJnt,curve, n=f'drv_skinCluster_{selName}', tsb=True, bm=0, sm=0, nw=1,mi=3)[0]
     cmds.parent(LocCenter,grp_LocCenter)
+    cmds.delete([nameparentDrv,nameparentLoc])
+    print(f'TRANSLATION {tr}')
 
 
 
 
+        
+def CtrlOnObj(obj,size,prefix="",suffix=""):
+    Ctrl=cmds.circle(name=f'Ctrl_{prefix}{obj}{suffix}',nr=[0,0,1],radius=size)[0]     
+    tr_Sel=cmds.xform(obj,translation=True, query=True, worldSpace=True)
+    ro_Sel=cmds.xform(obj,rotation=True, query=True, worldSpace=True)
+    cmds.xform(Ctrl, t=tr_Sel, ro=ro_Sel, ws=True)
+    smallUsefulFct.move2(Ctrl)
+    return Ctrl
+
+def CtrlPrincipal(drvJnts,sz):
+    # Create Ctrl
+    axes=['X','Y','Z']
+    axesmin = ['x','y','z']
+    midLength=len(drvJnts)//2
+    Ctrl=CtrlOnObj(drvJnts[midLength],sz,'Main_')
+    #Create multiply divide
+    for i in range(0,midLength):
+        #Create multiply divide Node 
+        MdCtrlTranslate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{drvJnts[midLength]}'))
+        MdCtrlrotate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{drvJnts[midLength]}'))
+        #Set Attribute AND Connect Attributes
+
+        incoming_nodes_Translate = cmds.listConnections(f"{drvJnts[midLength+i]}.translateX", source=True, destination=False, plugs=False)[0]
+        plugRotate = cmds.listConnections(f"{drvJnts[midLength+i]}.rotateX", source=True, destination=False, plugs=False)[0]
+        incoming_nodes_Rotate= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
+        print(f"Incoming Node : {incoming_nodes_Translate}  {incoming_nodes_Rotate} ")
+        for y in range(0,len(axes)):
+            if i == 0:
+                cmds.setAttr(f'{MdCtrlTranslate}.input2{axes[y]}',(1.0))
+                cmds.setAttr(f'{MdCtrlrotate}.input2{axes[y]}',(1.0))
+            else:
+                cmds.setAttr(f'{MdCtrlTranslate}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))
+                cmds.setAttr(f'{MdCtrlrotate}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))             
+            cmds.connectAttr(f'{Ctrl}.translate{axes[y]}',f'{MdCtrlTranslate}.input1{axes[y]}') 
+              
+            # Get the input node connected to the translate (all components)
+            cmds.connectAttr(f'{MdCtrlTranslate}.output{axes[y]}',f'{incoming_nodes_Translate}.input3D[2].input3D{axesmin[y]}')
+            cmds.connectAttr(f'{MdCtrlrotate}.output{axes[y]}',f'{incoming_nodes_Rotate}.input3D[2].input3D{axesmin[y]}')
 
 
+        if i > 0:
+        #Create multiply divide Node 
+            MdCtrlTranslate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{drvJnts[midLength]}'))
+            MdCtrlrotate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{drvJnts[midLength]}'))
+            #Set Attribute AND Connect Attributes
+            incoming_nodes_Translate2 = cmds.listConnections(f"{drvJnts[midLength-i]}.translateX", source=True, destination=False, plugs=False)[0]
+            plugRotate2 = cmds.listConnections(f"{drvJnts[midLength-i]}.rotateX", source=True, destination=False, plugs=False)[0]
+            incoming_nodes_Rotate2= cmds.listConnections(plugRotate2.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
+            for y in range(0,len(axes)):
+                cmds.setAttr(f'{MdCtrlTranslate2}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))
+                cmds.setAttr(f'{MdCtrlrotate2}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))
+                cmds.connectAttr(f'{Ctrl}.translate{axes[y]}',f'{MdCtrlTranslate2}.input1{axes[y]}') 
+                # Get the input node connected to the translate (all components)
+                cmds.connectAttr(f'{MdCtrlTranslate2}.output{axes[y]}',f'{incoming_nodes_Translate2}.input3D[2].input3D{axesmin[y]}')
+                cmds.connectAttr(f'{MdCtrlrotate2}.output{axes[y]}',f'{incoming_nodes_Rotate2}.input3D[2].input3D{axesmin[y]}')        
+
+        #Connection Move Milieu *1
+        #Connect move a cote *
 
 
+###### CONNECT CTRL CV ######
+#def cvCtrl():
+#    sel = cmds.ls(sl=True, flatten=True)
+#    if not sel or '.cv[' not in sel[0]:
+#        cmds.error("Please select a CV (curve.cv[index])")
+#    for s in sel:
+#        ##Creation CTRL
+#        Ctrl=cmds.circle(name=f'Ctrl_{sel}',nr=[1,0,0])[0]   
+#        ##Creation Node
+#
 
 
 ###### POSITIONS Automatique ######

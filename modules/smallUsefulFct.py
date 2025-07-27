@@ -338,3 +338,65 @@ def initialiseRemap(n,a,b,c,d):
         cmds.setAttr(n + '.inputMax', b)
         cmds.setAttr(n + '.outputMin', c)
         cmds.setAttr(n + '.outputMax', d)
+
+def isSomething(selection,something):
+    result=False
+    if something=="Curve":
+        # Get shape node
+        shapes = cmds.listRelatives(selection, shapes=True, fullPath=True) or []
+        if shapes and cmds.nodeType(shapes[0]) == 'nurbsCurve':
+            result=True
+            print("Selection is a curve.")
+        else:
+            result=False
+            print("Selection is not a curve.")
+
+    if something=="Edge":
+        if selection and ".e[" in selection:
+            result=True
+            print("Selection is a Edge.")
+        else:
+            result=False
+            print("Selection is not a Edge.")
+
+    return result
+    
+##Chat GPT
+def connect_translate_rotate(source, target):
+    """
+    Connects the translate and rotate attributes from source to target.
+    """
+    attrs = ['translateX', 'translateY', 'translateZ',
+             'rotateX', 'rotateY', 'rotateZ']
+    
+    for attr in attrs:
+        try:
+            cmds.connectAttr(f"{source}.{attr}", f"{target}.{attr}", force=True)
+        except Exception as e:
+            print(f"Could not connect {attr}: {e}")
+
+
+def connect_translate_rotate_pma(source, target):
+    """
+    Connects the translate and rotate attributes from source to target.
+    """
+    attr = [['translateX', 'translateY', 'translateZ'],['rotateX', 'rotateY', 'rotateZ']]
+    attrInputs = ['x','y','z']
+    for i in range(0,2):
+        pma0 =cmds.createNode('plusMinusAverage',n=nameIncrement(f"pma_{source}_{target}"))
+        cmds.setAttr(f"{pma0}.operation", 1)
+        for y in range(0,3):
+            for s in source:
+                #Translate
+                cmds.connectAttr(f"{s}.{attr[i][y]}",f'{pma0}.input3D[{i}].input3D{attrInputs[y]}', force=True)
+                cmds.connectAttr(f'{pma0}.output3D{attrInputs[y]}',f"{target}.{attr[i][y]}", force=True)
+
+
+
+def nameIncrement(name):
+    i=0
+    if cmds.objExists(name):
+        while(cmds.objExists(f'{name}_{i}')):
+            i+=1
+        name=f'{name}_{i}'
+    return name
