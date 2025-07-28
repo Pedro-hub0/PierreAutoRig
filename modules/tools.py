@@ -754,19 +754,42 @@ def aimOnCurveAdapt(txt,nbDrv,cbPath=1):
             maintainOffset=True,
             worldUpObject=objUp)
         smallUsefulFct.connect_translate_rotate_pma([tempctrl2],drv)
+        #Connect Ctrl Rotate pma
+        connect_rotate_pma(tempctrl,drv)
 
-    CtrlPrincipal(DrvJnt,dist)
+    ctrlPrinc=CtrlPrincipal(ctrlDrv,dist)
     ##Bind DrvJnts Curve
     SkinClusterDrv = cmds.skinCluster(DrvJnt,curve, n=f'drv_skinCluster_{selName}', tsb=True, bm=0, sm=0, nw=1,mi=3)[0]
     cmds.parent(LocCenter,grp_LocCenter)
+    cmds.parent(f'{ctrlPrinc}_Offset',grp_sysCrvAim)   
     cmds.delete([nameparentDrv,nameparentLoc])
-    print(f'TRANSLATION {tr}')
 
 
 
+def connect_rotate_pma(Ctrl,drv):
+    isPlug=False    
+    i=0
+    indexTab=[]
+    axes=['X','Y','Z']
 
-        
+
+    plugRotate = cmds.listConnections(f"{drv}.rotateX", source=True, destination=False, plugs=False)[0]
+    incoming_nodes_Rotate= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
+    connections = cmds.listConnections(f"{incoming_nodes_Rotate}.input3D", plugs=True, c=True)
+    
+    #Find the input already use
+    for c in connections:
+        if ".input3D[" in c:
+            index_str = c.split("input3D[")[-1].split("]")[0]
+            indexTab.append(int(index_str))
+    print(f'INDEX  {indexTab} ')
+
+    cmds.connectAttr(f'{Ctrl}.rotate',f'{incoming_nodes_Rotate}.input3D[{max(indexTab)+1}]')
+
+
+    
 def CtrlOnObj(obj,size,prefix="",suffix=""):
+
     Ctrl=cmds.circle(name=f'Ctrl_{prefix}{obj}{suffix}',nr=[0,0,1],radius=size)[0]     
     tr_Sel=cmds.xform(obj,translation=True, query=True, worldSpace=True)
     ro_Sel=cmds.xform(obj,rotation=True, query=True, worldSpace=True)
@@ -774,56 +797,72 @@ def CtrlOnObj(obj,size,prefix="",suffix=""):
     smallUsefulFct.move2(Ctrl)
     return Ctrl
 
-def CtrlPrincipal(drvJnts,sz):
+def CtrlPrincipal(CtrlDrv,sz):
     # Create Ctrl
     axes=['X','Y','Z']
     axesmin = ['x','y','z']
-    midLength=len(drvJnts)//2
-    Ctrl=CtrlOnObj(drvJnts[midLength],sz,'Main_')
+    midLength=len(CtrlDrv)//2
+    Ctrl=CtrlOnObj(CtrlDrv[midLength],sz,'Main_')    
+    cmds.addAttr(Ctrl, longName='___', attributeType='enum', enumName='____', defaultValue=0,keyable=True)
     #Create multiply divide
     for i in range(0,midLength):
         #Create multiply divide Node 
-        MdCtrlTranslate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{drvJnts[midLength]}'))
-        MdCtrlrotate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{drvJnts[midLength]}'))
+        MdCtrlTranslate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{CtrlDrv[midLength]}'))
+        MdCtrlrotate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{CtrlDrv[midLength]}'))
         #Set Attribute AND Connect Attributes
 
-        incoming_nodes_Translate = cmds.listConnections(f"{drvJnts[midLength+i]}.translateX", source=True, destination=False, plugs=False)[0]
-        plugRotate = cmds.listConnections(f"{drvJnts[midLength+i]}.rotateX", source=True, destination=False, plugs=False)[0]
-        incoming_nodes_Rotate= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
-        print(f"Incoming Node : {incoming_nodes_Translate}  {incoming_nodes_Rotate} ")
+        #incoming_nodes_Translate = cmds.listConnections(f"{drvJnts[midLength+i]}.translateX", source=True, destination=False, plugs=False)[0]
+        #plugRotate = cmds.listConnections(f"{drvJnts[midLength+i]}.rotateX", source=True, destination=False, plugs=False)[0]
+        #incoming_nodes_Rotate= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
+        v=1.0-(1.0/(midLength+i))
+        if not i==0:
+            cmds.addAttr(Ctrl, longName=f'Speed_{i}', attributeType='float', defaultValue=v,keyable=True)
         for y in range(0,len(axes)):
             if i == 0:
                 cmds.setAttr(f'{MdCtrlTranslate}.input2{axes[y]}',(1.0))
                 cmds.setAttr(f'{MdCtrlrotate}.input2{axes[y]}',(1.0))
             else:
-                cmds.setAttr(f'{MdCtrlTranslate}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))
-                cmds.setAttr(f'{MdCtrlrotate}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))             
+                print(f'CTRL  {Ctrl}   VVV  {v}')
+                cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlTranslate}.input2{axes[y]}')
+                cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlrotate}.input2{axes[y]}')             
             cmds.connectAttr(f'{Ctrl}.translate{axes[y]}',f'{MdCtrlTranslate}.input1{axes[y]}') 
               
             # Get the input node connected to the translate (all components)
-            cmds.connectAttr(f'{MdCtrlTranslate}.output{axes[y]}',f'{incoming_nodes_Translate}.input3D[2].input3D{axesmin[y]}')
-            cmds.connectAttr(f'{MdCtrlrotate}.output{axes[y]}',f'{incoming_nodes_Rotate}.input3D[2].input3D{axesmin[y]}')
+            cmds.connectAttr(f'{MdCtrlTranslate}.output{axes[y]}',f'{CtrlDrv[midLength+i]}_Move.translate{axes[y]}')
+            cmds.connectAttr(f'{MdCtrlrotate}.output{axes[y]}',f'{CtrlDrv[midLength+i]}_Move.rotate{axes[y]}')
 
 
         if i > 0:
         #Create multiply divide Node 
-            MdCtrlTranslate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{drvJnts[midLength]}'))
-            MdCtrlrotate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{drvJnts[midLength]}'))
+            MdCtrlTranslate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{CtrlDrv[midLength]}'))
+            MdCtrlrotate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{CtrlDrv[midLength]}'))
             #Set Attribute AND Connect Attributes
-            incoming_nodes_Translate2 = cmds.listConnections(f"{drvJnts[midLength-i]}.translateX", source=True, destination=False, plugs=False)[0]
-            plugRotate2 = cmds.listConnections(f"{drvJnts[midLength-i]}.rotateX", source=True, destination=False, plugs=False)[0]
-            incoming_nodes_Rotate2= cmds.listConnections(plugRotate2.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
+            #incoming_nodes_Translate2 = cmds.listConnections(f"{CtrlDrv[midLength-i]}.translateX", source=True, destination=False, plugs=False)[0]
+            #plugRotate2 = cmds.listConnections(f"{CtrlDrv[midLength-i]}.rotateX", source=True, destination=False, plugs=False)[0]
+            #incoming_nodes_Rotate2= cmds.listConnections(plugRotate2.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
             for y in range(0,len(axes)):
-                cmds.setAttr(f'{MdCtrlTranslate2}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))
-                cmds.setAttr(f'{MdCtrlrotate2}.input2{axes[y]}',(1.0-(1.0/(midLength+i))))
+                cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlTranslate2}.input2{axes[y]}')
+                cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlrotate2}.input2{axes[y]}')   
                 cmds.connectAttr(f'{Ctrl}.translate{axes[y]}',f'{MdCtrlTranslate2}.input1{axes[y]}') 
                 # Get the input node connected to the translate (all components)
-                cmds.connectAttr(f'{MdCtrlTranslate2}.output{axes[y]}',f'{incoming_nodes_Translate2}.input3D[2].input3D{axesmin[y]}')
-                cmds.connectAttr(f'{MdCtrlrotate2}.output{axes[y]}',f'{incoming_nodes_Rotate2}.input3D[2].input3D{axesmin[y]}')        
+                cmds.connectAttr(f'{MdCtrlTranslate2}.output{axes[y]}',f'{CtrlDrv[midLength-i]}_Move.translate{axes[y]}')
+                cmds.connectAttr(f'{MdCtrlrotate2}.output{axes[y]}',f'{CtrlDrv[midLength-i]}_Move.rotate{axes[y]}')    
+                   
+    return Ctrl
+    #Connection Move Milieu *1
+    #Connect move a cote *
 
-        #Connection Move Milieu *1
-        #Connect move a cote *
-
+def UnitCtrls():
+    selObj = cmds.ls(selection=True)
+    sz=bboxsize([selObj[0]])[0]
+    Ctrl=CtrlOnObj(selObj[0],sz,'Unit_')
+    smallUsefulFct.set_curve_color(Ctrl,13)
+        #Create attribute in the controller
+    cmds.addAttr(Ctrl, longName='___', attributeType='enum', enumName='____', defaultValue=0,keyable=True)
+    cmds.addAttr(Ctrl, longName='Hidden_Attributes', attributeType='bool', defaultValue=0,keyable=True)
+    for s in selObj:
+        cmds.parentConstraint(Ctrl,f'{s}_Move')
+        cmds.connectAttr(f'{Ctrl}.Hidden_Attributes',f'{s}.visibility')
 
 ###### CONNECT CTRL CV ######
 #def cvCtrl():
@@ -840,7 +879,6 @@ def CtrlPrincipal(drvJnts,sz):
 ###### POSITIONS Automatique ######
 def bboxsize(sel):
     bbox = cmds.exactWorldBoundingBox(sel[0])
-
     width = bbox[3] - bbox[0]   # X size
     height = bbox[4] - bbox[1]  # Y size
     depth = bbox[5] - bbox[2]   # Z size
