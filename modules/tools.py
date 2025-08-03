@@ -755,9 +755,9 @@ def aimOnCurveAdapt(txt,nbDrv,cbPath=1):
             worldUpObject=objUp)
         smallUsefulFct.connect_translate_rotate_pma([tempctrl2],drv)
         #Connect Ctrl Rotate pma
-        connect_rotate_pma(tempctrl,drv)
+        connect_pma(tempctrl,drv)
 
-    ctrlPrinc=CtrlPrincipal(ctrlDrv,dist)
+    ctrlPrinc=CtrlPrincipal(ctrlDrv,dist,DrvJnt,grp_sysCrvAim)
     ##Bind DrvJnts Curve
     SkinClusterDrv = cmds.skinCluster(DrvJnt,curve, n=f'drv_skinCluster_{selName}', tsb=True, bm=0, sm=0, nw=1,mi=3)[0]
     cmds.parent(LocCenter,grp_LocCenter)
@@ -766,25 +766,33 @@ def aimOnCurveAdapt(txt,nbDrv,cbPath=1):
 
 
 
-def connect_rotate_pma(Ctrl,drv):
+def connect_pma(Ctrl,drv,r=True,t=False):
     isPlug=False    
     i=0
     indexTab=[]
     axes=['X','Y','Z']
+    transRotation=[]
+    if r:
+        transRotation.append("rotate")
+    if t:
+        transRotation.append("translate")
+        
+    for transRot in transRotation:
+        plugRotate = cmds.listConnections(f"{drv}.{transRot}X", source=True, destination=False, plugs=False)[0]
+        if transRot=="rotate":
+            incoming_nodes= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
+        if transRot=="translate":
+            incoming_nodes=plugRotate
+        connections = cmds.listConnections(f"{incoming_nodes}.input3D", plugs=True, c=True)
+        
+        #Find the input already use
+        for c in connections:
+            if ".input3D[" in c:
+                index_str = c.split("input3D[")[-1].split("]")[0]
+                indexTab.append(int(index_str))
+        print(f'INDEX  {indexTab} ')
 
-
-    plugRotate = cmds.listConnections(f"{drv}.rotateX", source=True, destination=False, plugs=False)[0]
-    incoming_nodes_Rotate= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
-    connections = cmds.listConnections(f"{incoming_nodes_Rotate}.input3D", plugs=True, c=True)
-    
-    #Find the input already use
-    for c in connections:
-        if ".input3D[" in c:
-            index_str = c.split("input3D[")[-1].split("]")[0]
-            indexTab.append(int(index_str))
-    print(f'INDEX  {indexTab} ')
-
-    cmds.connectAttr(f'{Ctrl}.rotate',f'{incoming_nodes_Rotate}.input3D[{max(indexTab)+1}]')
+        cmds.connectAttr(f'{Ctrl}.{transRot}',f'{incoming_nodes}.input3D[{max(indexTab)+1}]')
 
 
     
@@ -797,32 +805,37 @@ def CtrlOnObj(obj,size,prefix="",suffix=""):
     smallUsefulFct.move2(Ctrl)
     return Ctrl
 
-def CtrlPrincipal(CtrlDrv,sz):
+def CtrlPrincipal(CtrlDrv,sz,drv,orga):
     # Create Ctrl
+    offsetLoc=[]
     axes=['X','Y','Z']
     axesmin = ['x','y','z']
     midLength=len(CtrlDrv)//2
     Ctrl=CtrlOnObj(CtrlDrv[midLength],sz,'Main_')    
     cmds.addAttr(Ctrl, longName='___', attributeType='enum', enumName='____', defaultValue=0,keyable=True)
+
+    #Loc Middle --> Rotate systeme
+    trsMiddle=cmds.xform(f'{drv[midLength]}', q=True, t=True, ws=True)
+    roMiddle=cmds.xform(f'{drv[midLength]}', q=True, ro=True, ws=True)
+    locMid=cmds.spaceLocator(name=smallUsefulFct.nameIncrement("Loc_Rot_Middle"))[0]
+    cmds.xform(locMid,t=trsMiddle, ro=roMiddle, ws=True)
+    offsetLoc.append(smallUsefulFct.offset2(locMid))
+    
     #Create multiply divide
     for i in range(0,midLength):
         #Create multiply divide Node 
         MdCtrlTranslate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{CtrlDrv[midLength]}'))
         MdCtrlrotate = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{CtrlDrv[midLength]}'))
         #Set Attribute AND Connect Attributes
-
-        #incoming_nodes_Translate = cmds.listConnections(f"{drvJnts[midLength+i]}.translateX", source=True, destination=False, plugs=False)[0]
-        #plugRotate = cmds.listConnections(f"{drvJnts[midLength+i]}.rotateX", source=True, destination=False, plugs=False)[0]
-        #incoming_nodes_Rotate= cmds.listConnections(plugRotate.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
         v=1.0-(1.0/(midLength+i))
         if not i==0:
             cmds.addAttr(Ctrl, longName=f'Speed_{i}', attributeType='float', defaultValue=v,keyable=True)
+
         for y in range(0,len(axes)):
             if i == 0:
                 cmds.setAttr(f'{MdCtrlTranslate}.input2{axes[y]}',(1.0))
                 cmds.setAttr(f'{MdCtrlrotate}.input2{axes[y]}',(1.0))
             else:
-                print(f'CTRL  {Ctrl}   VVV  {v}')
                 cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlTranslate}.input2{axes[y]}')
                 cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlrotate}.input2{axes[y]}')             
             cmds.connectAttr(f'{Ctrl}.translate{axes[y]}',f'{MdCtrlTranslate}.input1{axes[y]}') 
@@ -837,9 +850,6 @@ def CtrlPrincipal(CtrlDrv,sz):
             MdCtrlTranslate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_translate_{CtrlDrv[midLength]}'))
             MdCtrlrotate2 = cmds.createNode('multiplyDivide', name=  smallUsefulFct.nameIncrement(f'mD_rotate_{CtrlDrv[midLength]}'))
             #Set Attribute AND Connect Attributes
-            #incoming_nodes_Translate2 = cmds.listConnections(f"{CtrlDrv[midLength-i]}.translateX", source=True, destination=False, plugs=False)[0]
-            #plugRotate2 = cmds.listConnections(f"{CtrlDrv[midLength-i]}.rotateX", source=True, destination=False, plugs=False)[0]
-            #incoming_nodes_Rotate2= cmds.listConnections(plugRotate2.replace(".output", ".input"), source=True, destination=False, plugs=True)[0].split('.')[0]
             for y in range(0,len(axes)):
                 cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlTranslate2}.input2{axes[y]}')
                 cmds.connectAttr(f'{Ctrl}.Speed_{i}',f'{MdCtrlrotate2}.input2{axes[y]}')   
@@ -847,6 +857,33 @@ def CtrlPrincipal(CtrlDrv,sz):
                 # Get the input node connected to the translate (all components)
                 cmds.connectAttr(f'{MdCtrlTranslate2}.output{axes[y]}',f'{CtrlDrv[midLength-i]}_Move.translate{axes[y]}')
                 cmds.connectAttr(f'{MdCtrlrotate2}.output{axes[y]}',f'{CtrlDrv[midLength-i]}_Move.rotate{axes[y]}')    
+
+            #ROTATION --> Rotate systeme
+            #Create system locator
+            #create 2 locator at th position of thr Drv Jnt
+            locR=cmds.spaceLocator(name=smallUsefulFct.nameIncrement("Loc_Rot_R"))[0]
+            locL=cmds.spaceLocator(name=smallUsefulFct.nameIncrement("Loc_Rot_L"))[0]
+            cmds.matchTransform(locR,drv[midLength-i])
+            cmds.matchTransform(locL,drv[midLength+i])
+
+            #Offset
+            offsetLoc.append(smallUsefulFct.offset2(locR))
+            offsetLoc.append(smallUsefulFct.offset2(locL))
+            
+            #Constraint parent the locators to the middle DrvJnt
+            cmds.parentConstraint(locMid,locR,maintainOffset=True, weight=1)
+            cmds.parentConstraint(locMid,locL,maintainOffset=True, weight=1)
+
+            #Connect Rotate Principal and loc to DrvJnt
+            connect_pma(locR,drv[midLength-i],True,True)
+            connect_pma(locL,drv[midLength+i],True,True)
+         
+        #Connect Rotate Middle to DrvJnt   
+        connect_pma(Ctrl,drv[midLength])
+        cmds.orientConstraint(Ctrl,locMid)
+
+
+    cmds.parent(offsetLoc,orga)
                    
     return Ctrl
     #Connection Move Milieu *1
